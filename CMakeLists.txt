@@ -13,18 +13,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 set(CMAKE_CXX_FLAGS_DEBUG "-DNDEBUG")
 
 set(Boost_USE_STATIC_LIBS ON)
-set(BOOST_ROOT_DIR /usr/local/opt/boost)
-set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-set(ZLIB_ROOT_DIR /usr/local/opt/zlib)
+set(BOOST_ROOT_DIR /temp/kristjanr/libs/boost_1_61_0)
+#set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+#set(ZLIB_ROOT_DIR /usr/local/opt/zlib)
 
 find_package(Boost REQUIRED COMPONENTS date_time system regex iostreams)
-find_package(GSL REQUIRED)
-find_package(OpenSSL REQUIRED)
-find_package(ZLIB)
+#find_package(GSL REQUIRED)
+#find_package(OpenSSL REQUIRED)
+#find_package(ZLIB)
 
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${GSL_INCLUDE_DIRS})
-include_directories(${OPENSSL_INCLUDE_DIR})
+#include_directories(${GSL_INCLUDE_DIRS})
+#include_directories(${OPENSSL_INCLUDE_DIR})
 
 include_directories(".")
 include_directories(helper)
@@ -42,7 +42,7 @@ target_link_libraries(${PROJECT_NAME}
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
-    ${ZLIB_LIBRARIES}
+    #    ${ZLIB_LIBRARIES}
 )
 
 
