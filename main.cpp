@@ -185,7 +185,7 @@ void get_times(std::vector<Graph> graphs, std::vector<float> predictions, std::v
         float time;
         int s;
         int max_steps = -1;
-        float max_time = 1000.0;
+        float max_time = 2000.0;
         get_time_MCQD(g_new, predictions[i], &s, &time, max_steps, max_time);
         times->push_back(time);
         steps->push_back(s);
@@ -198,9 +198,9 @@ void get_times(std::vector<Graph> graphs, std::vector<int> *steps, std::vector<f
 }
 
 void test_model_on_dataset(std::string dataset, std::string model_name) {
-    std::string path_predictions = "data/pred/" + dataset + "_" + model_name + ".csv";
-    std::string path_results_pred = "data/results/" + dataset + "_" + model_name + ".csv";
-    std::string path_data = "data/" + dataset + "_data.csv";
+    std::string path_predictions = "pred/" + dataset + "_" + model_name + ".csv";
+    std::string path_results_pred = "results/" + dataset + "_" + model_name + ".csv";
+    std::string path_data = "datasets/" + dataset + "_data.csv";
 
     std::vector<float> predictions;
     std::vector<float> times_pred;
@@ -222,14 +222,18 @@ int main()
     //test_model_on_dataset("dense", "gnn");
     //test_model_on_dataset("protein", "gnn");
     //test_model_on_dataset("rand", "gnn");
-    test_model_on_dataset("dimacs", "gnn");
+    //test_model_on_dataset("dimacs", "gnn");
+
+    test_model_on_dataset("protein", "default");
+    test_model_on_dataset("dense", "default");
+    test_model_on_dataset("rand", "default");
     test_model_on_dataset("dimacs", "default");
 
     /*
     int i = 2;
     std::vector<Graph> graphs;
     std::vector<float> _Tlimits;
-    load_data("data/sparse_data.csv", &graphs, &_Tlimits); // load graphs
+    load_data("datasets/sparse_data.csv", &graphs, &_Tlimits); // load graphs
     std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
     std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
     Array2d<bool> g_new(graphs[i].num_nodes);
