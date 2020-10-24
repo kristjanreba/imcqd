@@ -1,0 +1,14 @@
+.vscode/
+.ipynb_checkpoints/
+*.code-workspace
+CMakeFiles/
+__pycache__/
+.DS_Store
+*.swp
+Makefile
+*.cmake
+
+build/
+not_for_git/
+datasets/
+
