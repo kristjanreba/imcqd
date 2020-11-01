@@ -83,10 +83,10 @@ if __name__ == "__main__":
 
     #plot_time_dist()
 
-    #compare_test_results("protein", "gnn")
-    #compare_test_results("dense", "gnn")
-    #compare_test_results("rand", "gnn")
-    compare_test_results("dimacs", "gnn")
+    compare_test_results("protein", "gnn")
+    compare_test_results("dense", "gnn")
+    compare_test_results("rand", "gnn")
+    #compare_test_results("dimacs", "gnn")
 
     #compare_test_results("rand", "gbr")
     #compare_test_results("rand", "gnn")

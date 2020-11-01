@@ -104,8 +104,10 @@ def make_prediction(A, X, model, log_scale):
     return pred
 
 def predict_dataset(dataset, model_name, log_scale=False):
-    path_data = '../data/datasets/{}_data.csv'.format(dataset)
-    path_out = '../data/pred/{}_{}.csv'.format(dataset, model_name)
+    path_data = ''
+    path_out = '../pred/{}_{}.csv'.format(dataset, model_name)
+    if dataset == 'protein_graphs' or dataset == 'docking_graphs': path_data = '../datasets/{}/test/'.format(dataset)
+    else: path_data = '../datasets/{}_data.csv'.format(dataset)
     A_list, X_list = load_and_preprocess_test_data(path_data)
     model = create_model(model_name, True)
     Tlimits = []
@@ -137,7 +139,10 @@ def main():
     load_model = True
     train_model = True
     log_scale = True
-    path = '../data/datasets/train_data.csv'
+    train_paths = ['../datasets/train_data.csv',
+                    '../dataset/protein_graphs/train/',
+                    '../dataset/docking_graphs/train/'
+                    ]
 
     learning_rate = 1e-4    # Learning rate for SGD
     batch_size = 64         # Batch size
@@ -153,12 +158,12 @@ def main():
     # Fit model
     if train_model:
 
-         # Load data
+        # Load and prepare train data
         print('Loading and preprocessing data...')
         A_train, A_val, A_test,\
         X_train, X_val, X_test,\
         y_train, y_val, y_test,\
-        F, n_out = load_and_preprocess_train_data(path, val_size=0.05, test_size=0.01)
+        F, n_out = load_and_preprocess_train_data(train_paths, val_size=0.05, test_size=0.01)
         if log_scale:
             y_train = np.log10(y_train + epsilon)
             y_val = np.log10(y_val + epsilon)
@@ -249,6 +254,10 @@ def main():
     predict_dataset('dense', model_name, log_scale)
     print('Predicting protein dataset')
     predict_dataset('protein', model_name, log_scale)
+    print('Predicting product protein graphs')
+    predict_dataset('protein_product', model_name, log_scale)
+    print('Predicting docking protein graphs')
+    predict_dataset('docking_protein', model_name, log_scale)
 
 
     '''

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import networkx as nx
 import pandas as pd
@@ -10,7 +11,24 @@ from spektral.utils.convolution import normalized_adjacency
 
 epsilon = 1e-6
 
-def load_data(path):
+def load_data_from_folder(path):
+    '''Read all graphs in folder and return them in a list as well as Tlimit values
+
+    Returns:
+        A: list of adjacency matrices in cms_matrix format
+        Tlimits: list of float values
+    '''
+    graphs = []
+    f = open(path, 'r')
+    for filename in os.listdir(directory):
+        if filename.endswith('.txt'):
+            print('Loading from file:', filename)
+            g = load_dimacs_into_csrmatrix(os.path.join(directory, filename))
+            graphs.append(g)
+    Tlimits = [0] * len(graphs)
+    return graphs, Tlimits
+
+def load_data_from_csv(path):
     '''
     Read file that contains graphs and
     best Tlimit value for each graph.
@@ -28,7 +46,7 @@ def load_data(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-        g = np.zeros((n_vertices, n_vertices))
+        g = csr_matrix((n_vertices, n_vertices))
         for j in range(n_edges):
             u, v = lines[counter].split(" ")
             u, v = int(u), int(v)
@@ -37,6 +55,7 @@ def load_data(path):
         graphs.append(g)
         Tlimits.append(float(lines[counter]))
         counter += 1
+    f.close()
     Tlimits = np.array(Tlimits).reshape(-1,1)
     return graphs, Tlimits
 
@@ -73,8 +92,27 @@ def get_ones_as_feature_vectors(A_list):
 def cast_list_to_float32(X):
     return [tf.dtypes.cast(x, tf.float32) for x in X]
 
-def load_and_preprocess_train_data(path, val_size=0.1, test_size=0.1):
-    A, y = load_data(path) # A is a list of graphs, y is a list of float values
+def load_data(list_of_paths):
+    """ Load data from the paths contained in list_of_paths
+    Returns:
+        A: list of graphs in cms_matrix format
+        y: list of Tlimit values
+    """
+    A = []
+    y = []
+    for p in list_of_paths:
+        if p.endswith('.csv'):
+            A_, y_ = load_data_from_csv(p)
+            A += A_
+            y += y_
+        else:
+            A_, y_ = load_data_from_folder(p)
+            A += A_
+            y += y_
+    return A, y
+    
+def load_and_preprocess_train_data(paths, val_size=0.1, test_size=0.1):
+    A, y = load_data(paths) # A is a list of graphs, y is a list of float values
     y += epsilon
     A = cast_list_to_float32(A)
     y = cast_list_to_float32(y)
@@ -108,40 +146,48 @@ def load_and_preprocess_test_data(path):
     A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
     return A_list, X_list
 
-def load_dimacs(path):
+def load_dimacs_into_csrmatrix(path):
     f = open(path, 'r')
     lines = f.readlines()
     g = None
     for l in lines:
         if l[0] == 'c': continue
         elif l[0] == 'p':
-            _, _, n_vertices, _ = l.split()
+            retval = l.split()
+            n_vertices = None
+            if len(retval) == 4: _, _, n_vertices, _ = retval
+            else: _, _, n_vertices = retval
             n_vertices = int(n_vertices)
-            g = np.zeros((n_vertices, n_vertices))
+            g = csr_matrix((n_vertices, n_vertices), dtype=np.int8)
+            #g = np.zeros((n_vertices, n_vertices))
         elif l[0] == 'e':
             _, u, v = l.split(" ")
             u, v = int(u)-1, int(v)-1 # substract one to make name of vertices start at 0
             g[u,v] = 1
+        elif l[0] == 'v': continue
         else:
-            print('Unknown line in dimacs graph.')
+            print('Unknown line in dimacs graph:', l)
             exit()
+    f.close()
     return g
 
 def save_graph(path, g, Tlimit):
     save_data(path, [g], [Tlimit])
 
-def save_clq_to_csv(path_in, path_out):
+def save_graphs_to_csv(path_in, path_out, file_tipe='clq'):
+    print('saving graphs from {} into csv file'.format(path_in))
     directory_in_str = path_in
     save_file = path_out
-    pathlist = Path(directory_in_str).rglob('*.clq')
+    pathlist = Path(directory_in_str).rglob('*.' + file_tipe)
     pathlist = sorted(pathlist)
+    print('number of graphs:', len(pathlist))
     graphs = []
     Tlimits = []
     i = 0
     for path in pathlist:
         path_in_str = str(path)
         print(i, path_in_str)
-        g = load_dimacs(path_in_str)
+        g = load_dimacs_into_csrmatrix(path_in_str)
         graphs.append(g)
         Tlimits.append(0)
         i += 1
@@ -215,4 +261,9 @@ def load_basic_data(path):
 
 
 if __name__ == "__main__":
-    pass
+
+    save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
+    save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
+    save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
+    save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
+
