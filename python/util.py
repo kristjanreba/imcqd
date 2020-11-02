@@ -5,7 +5,7 @@ import pandas as pd
 import re
 from pathlib import Path
 import tensorflow as tf
-from scipy.sparse import csr_matrix
+from scipy.sparse import dok_matrix
 from sklearn.model_selection import train_test_split
 from spektral.utils.convolution import normalized_adjacency
 
@@ -146,7 +146,7 @@ def load_and_preprocess_test_data(path):
     A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
     return A_list, X_list
 
-def load_dimacs_into_csrmatrix(path):
+def load_dimacs_into_sparse_matrix(path):
     f = open(path, 'r')
     lines = f.readlines()
     g = None
@@ -158,7 +158,7 @@ def load_dimacs_into_csrmatrix(path):
             if len(retval) == 4: _, _, n_vertices, _ = retval
             else: _, _, n_vertices = retval
             n_vertices = int(n_vertices)
-            g = csr_matrix((n_vertices, n_vertices), dtype=np.int8)
+            g = dok_matrix((n_vertices, n_vertices), dtype=np.int8)
             #g = np.zeros((n_vertices, n_vertices))
         elif l[0] == 'e':
             _, u, v = l.split(" ")
@@ -167,7 +167,8 @@ def load_dimacs_into_csrmatrix(path):
         elif l[0] == 'v': continue
         else:
             print('Unknown line in dimacs graph:', l)
-            exit()
+            print('Skipping this line.')
+            continue
     f.close()
     return g
 
@@ -187,7 +188,7 @@ def save_graphs_to_csv(path_in, path_out, file_tipe='clq'):
     for path in pathlist:
         path_in_str = str(path)
         print(i, path_in_str)
-        g = load_dimacs_into_csrmatrix(path_in_str)
+        g = load_dimacs_into_sparse_matrix(path_in_str)
         graphs.append(g)
         Tlimits.append(0)
         i += 1
