@@ -27,21 +27,7 @@ void adj_list_to_array2d(Graph g, Array2d<bool> *g_new) {
     }
 }
 
-void save_data(std::string path, std::vector<Graph> graphs, std::vector<float> Tlimits) {
-    if (graphs.size() != Tlimits.size()) return;
-    int n = graphs.size();
-    std::ofstream f(path);
-    f << n << '\n';
-    for (int i = 0; i < n; i++) {
-        f << graphs[i].num_nodes << ' ' << graphs[i].num_edges << '\n';
-        for (auto& p : graphs[i].edge_list) {
-            int u = p.first, v = p.second;
-            f << u << ' ' << v << '\n';
-        }
-        f << Tlimits[i] << '\n';
-    }
-    f.close();
-}
+// -------------- Loading data ------------------
 
 void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> *Tlimits) {
     std::ifstream f(path);
@@ -60,6 +46,18 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
         float Tlimit;
         f >> Tlimit;
         Tlimits->push_back(Tlimit);
+    }
+    f.close();
+}
+
+void load_vector(std::string path, std::vector<float> *predictions) {
+    std::ifstream f(path);
+    int n; // number of predictions
+    f >> n;
+    for (int i = 0; i < n; i++) {
+        float p;
+        f >> p;
+        predictions->push_back(p);
     }
     f.close();
 }
@@ -88,14 +86,20 @@ void print_array2d(Array2d<bool> a) {
     }
 }
 
-void load_predictions(std::string path, std::vector<float> *predictions) {
-    std::ifstream f(path);
-    int n; // number of predictions
-    f >> n;
+// -------------- Saving data ------------------
+
+void save_data(std::string path, std::vector<Graph> graphs, std::vector<float> Tlimits) {
+    if (graphs.size() != Tlimits.size()) return;
+    int n = graphs.size();
+    std::ofstream f(path);
+    f << n << '\n';
     for (int i = 0; i < n; i++) {
-        float p;
-        f >> p;
-        predictions->push_back(p);
+        f << graphs[i].num_nodes << ' ' << graphs[i].num_edges << '\n';
+        for (auto& p : graphs[i].edge_list) {
+            int u = p.first, v = p.second;
+            f << u << ' ' << v << '\n';
+        }
+        f << Tlimits[i] << '\n';
     }
     f.close();
 }
@@ -119,6 +123,18 @@ void save_dist(std::string path, std::vector<float> Tlimits, std::vector<float> 
     }
     f.close();
 }
+
+void save_vector(std::string path, std::vector<float> v) {
+    int n = v.size();
+    std::ofstream f(path);
+    f << n << '\n';
+    for (int i = 0; i < n; i++) {
+        f << v[i] << '\n';
+    }
+    f.close();
+}
+
+// -------------- Vectors ------------------
 
 std::vector<float> make_vector(float beg, float end, float step) {
     std::vector<float> vec;

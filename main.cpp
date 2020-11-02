@@ -40,7 +40,7 @@ float get_best_Tlimit(Array2d<bool> g) {
         float time;
         int steps;
         int max_steps = -1;
-        float max_time = 1.0;
+        float max_time = 5.0;
         get_time_MCQD(g, Tlimits[j], &steps, &time, max_steps, max_time);
         if (fabs(time - max_time) < 0.1) continue;
         if (time < best_time || best_time == -1) {
@@ -125,7 +125,7 @@ void generate_test_data(std::string path) {
     save_data(path, graphs, Tlimits);
 }
 
-void generate_dense_graphs(std::string path, int dataset_size, int max_vertices) {
+void generate_dense_graphs(std::string path, int dataset_size, int max_vertices, bool calculate_best_Tlimit) {
     std::vector<Graph> graphs;
     std::vector<float> Tlimits;
 
@@ -139,7 +139,8 @@ void generate_dense_graphs(std::string path, int dataset_size, int max_vertices)
         std::cout << p << std::endl;
         Array2d<bool> g(n);
         random_graph(&g, n, p);
-        float best_Tlimit = 0;//get_best_Tlimit(g);
+        float best_Tlimit = 0;
+        if calculate_best_Tlimit best_Tlimit = get_best_Tlimit(g);
         Graph g_adj(n);
         array2d_to_adj_list(g, &g_adj);
         graphs.push_back(g_adj);
@@ -169,6 +170,23 @@ void generate_sparse_graphs(std::string path, int dataset_size, int max_vertices
         Tlimits.push_back(best_Tlimit);
     }
     save_data(path, graphs, Tlimits);
+}
+
+void generate_train_data_from_csv(std::string path_in, std::string path_out) {
+    std::vector<Graph> graphs;
+    std::vector<float> Tlimits;
+    std::vector<float> best_Tlimits;
+    load_data(path_in, &graphs, &Tlimits);
+    int n = graphs.size();
+    //int n = 2;
+    for (int i = 0; i < n; i++) {
+        std::cout << i << std::endl;
+        Array2d<bool> g_new(graphs[i].num_nodes);
+        adj_list_to_array2d(graphs[i], &g_new);
+        tlimit = get_best_Tlimit(g_new);
+        Tlimits.push_back(tlimit);
+    }
+    save_vector(path_out, Tlimits);
 }
 
 void get_times(std::vector<Graph> graphs, std::vector<float> predictions, std::vector<int> *steps, std::vector<float> *times) {
@@ -219,15 +237,20 @@ void test_model_on_dataset(std::string dataset, std::string model_name) {
 int main()
 {
 
+    generate_train_data_from_csv("datasets/docking_train.csv", "datasets/docking_train_tlimits.csv");
+    generate_train_data_from_csv("datasets/product_train.csv", "datasets/product_train_tlimits.csv");
+
+    
     //test_model_on_dataset("dense", "gnn");
     //test_model_on_dataset("protein", "gnn");
     //test_model_on_dataset("rand", "gnn");
     //test_model_on_dataset("dimacs", "gnn");
 
-    test_model_on_dataset("protein", "default");
-    test_model_on_dataset("dense", "default");
-    test_model_on_dataset("rand", "default");
-    test_model_on_dataset("dimacs", "default");
+    //test_model_on_dataset("protein", "default");
+    //test_model_on_dataset("dense", "default");
+    //test_model_on_dataset("rand", "default");
+    //test_model_on_dataset("dimacs", "default");
+
 
     /*
     int i = 2;
