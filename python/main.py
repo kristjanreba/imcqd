@@ -18,39 +18,16 @@ from spektral.utils.convolution import normalized_adjacency
 from spektral.utils.data import batch_iterator, numpy_to_disjoint
 
 from util import *
-#from gnn_models import GCN, GIT, GAT
 
 def create_model(model_name, load_model):
     model = None
     F, n_out = 1, 1
-    if model_name == 'gnn': model = create_model_gnn(F, n_out)
+    if model_name == 'gcn': model = create_model_gcn(F, n_out)
     elif model_name == 'gin': model = create_model_gin(F, n_out)
-    elif model_name == 'gcn': model = create_model_gcn(F, n_out)
     else:
         print('No model with that name.')
         exit()
     if load_model: model.load_weights('saved_models/' + model_name + '.h5')
-    return model
-
-def create_model_gcn(F, n_out):
-    X_in = Input(shape=(F, ), name='X_in')
-    A_in = Input(shape=(None,), sparse=True)
-    I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
-
-    dropout = 0.5
-    layer_size = 256
-
-    X_1 = GraphConv(layer_size, activation='relu')([X_in, A_in])
-    X_1 = BatchNormalization()(X_1)
-    #X_1 = Dropout(dropout)(X_1)
-    X_2 = GraphConv(layer_size, activation='relu')([X_1, A_in])
-    X_2 = BatchNormalization()(X_2)
-    #X_2 = Dropout(dropout)(X_2)
-    output = GraphConv(n_out, activation='relu')([X_2, A_in])
-    #X_3 = Dense(64)(X_2)
-    #output = Dense(n_out)(X_3)
-
-    model = Model(inputs=[X_in, A_in, I_in], outputs=output)
     return model
 
 def create_model_gin(F, n_out):
@@ -68,7 +45,7 @@ def create_model_gin(F, n_out):
     model = Model(inputs=[X_in, A_in, I_in], outputs=output)
     return model
 
-def create_model_gnn(F, n_out):
+def create_model_gcn(F, n_out):
     X_in = Input(shape=(F, ), name='X_in')
     A_in = Input(shape=(None,), sparse=True)
     I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
@@ -135,14 +112,14 @@ def main():
     
     
     # Parameters
-    model_name = 'gnn'
-    load_model = True
+    model_name = 'gcn'
+    load_model = False
     train_model = True
     log_scale = True
-    train_paths = ['../datasets/train_data.csv',
-                    '../dataset/protein_graphs/train/',
-                    '../dataset/docking_graphs/train/'
-                    ]
+    datasets_train = ['rand', 'product', 'docking']
+    datasets_test = ['rand', 'product', 'docking', 'dense']
+    train_paths = [d + '_train.csv'for d in datasets_train]
+    paths_tlimits = [d + '_train_tlimits.csv' for d in datasets_train']
 
     learning_rate = 1e-4    # Learning rate for SGD
     batch_size = 64         # Batch size
@@ -163,7 +140,7 @@ def main():
         A_train, A_val, A_test,\
         X_train, X_val, X_test,\
         y_train, y_val, y_test,\
-        F, n_out = load_and_preprocess_train_data(train_paths, val_size=0.05, test_size=0.01)
+        F, n_out = load_and_preprocess_train_data(train_paths, paths_tlimits, val_size=0.05, test_size=0.01)
         if log_scale:
             y_train = np.log10(y_train + epsilon)
             y_val = np.log10(y_val + epsilon)
@@ -234,30 +211,18 @@ def main():
                 model_acc = 0
                 current_batch = 0
     
-
         print('Saving model to file')
         model.set_weights(best_weights)
         model.save_weights('saved_models/' + model_name + '.h5')
 
-    
         # Evaluate model
         print('Testing model')
         test_loss, test_acc = evaluate(A_test, X_test, y_test, [loss_fn, acc_fn], batch_size=batch_size)
         print('Test loss: {:.4f}. Test RMSE: {:.4f}'.format(test_loss, test_acc))
-    
-    # Make predictions
-    print('Predicting rand dataset')
-    predict_dataset('rand', model_name, log_scale)
-    print('Predicting dimacs dataset')
-    predict_dataset('dimacs', model_name, log_scale)
-    print('Predicting dense dataset')
-    predict_dataset('dense', model_name, log_scale)
-    print('Predicting protein dataset')
-    predict_dataset('protein', model_name, log_scale)
-    print('Predicting product protein graphs')
-    predict_dataset('protein_product', model_name, log_scale)
-    print('Predicting docking protein graphs')
-    predict_dataset('docking_protein', model_name, log_scale)
+
+
+    for dataset in datasets_test:
+        predict_dataset(dataset, model_name, log_scale)
 
 
     '''

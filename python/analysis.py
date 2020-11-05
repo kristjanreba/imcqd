@@ -59,12 +59,13 @@ def plot_distribution(x, plot_name='Tlimit_dist'):
     #plt.show()
     plt.savefig('figures/' + plot_name + '.png')
 
-def plot_time_dist():
-    Tlimits, times = load_dist('../data/dist.csv')
+def plot_time_dist(path):
+    Tlimits, times = load_dist(path)
     # filter out failed Tlimits
     Tlimits = [Tlimits[i] for i in range(len(times)) if times[i] > 0]
     times = [times[i] for i in range(len(times)) if times[i] > 0]
     
+    plt.figure(figsize=(10,5))
     plt.subplot(211)
     plt.ylabel('time (s)')
     plt.xlabel('Tlimit')
@@ -82,8 +83,11 @@ def plot_time_dist():
     #plt.show()
 
 if __name__ == "__main__":
+    
+    
     plot_distribution(load_Tlimits('../datasets/docking_train_tlimits.csv'), plot_name='Tlimit_dist_docking')
     plot_distribution(load_Tlimits('../datasets/product_train_tlimits.csv'), plot_name='Tlimit_dist_product')
+    plot_distribution(load_Tlimits('../datasets/rand_train_tlimits.csv'), plot_name='Tlimit_dist_rand')
     
     
 

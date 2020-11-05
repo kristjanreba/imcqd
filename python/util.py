@@ -46,7 +46,7 @@ def load_data_from_csv(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-        g = coo_matrix((n_vertices, n_vertices))
+        g = dok_matrix((n_vertices, n_vertices))
         for j in range(n_edges):
             u, v = lines[counter].split(" ")
             u, v = int(u), int(v)
@@ -81,6 +81,13 @@ def save_data(path, graphs, Tlimits):
         f.write(str(Tlimits[i]) + "\n")
     f.close()
 
+def save_vector(path, v):
+    f = open(path, 'w')
+    n = len(v)
+    f.write(str(n) + "\n")
+    for p in v:
+        f.write(str(p) + "\n")
+
 def split_data(X, y, validation_size=0.2, test_size=0.1):
     train_size = 1. - (validation_size + test_size)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1-train_size, shuffle=True)
@@ -97,24 +104,17 @@ def load_data(list_of_paths):
     """ Load data from the paths contained in list_of_paths
     Returns:
         A: list of graphs in cms_matrix format
-        y: list of Tlimit values
     """
     A = []
-    y = []
     for p in list_of_paths:
-        if p.endswith('.csv'):
-            A_, y_ = load_data_from_csv(p)
-            A += A_
-            y += y_
-        else:
-            A_, y_ = load_data_from_folder(p)
-            A += A_
-            y += y_
-    return A, y
+        if p.endswith('.csv'): A += load_graphs_from_csv(p)
+        else: A += load_graphs_from_folder(p)
+    return A
     
-def load_and_preprocess_train_data(paths, val_size=0.1, test_size=0.1):
-    A, y = load_data(paths) # A is a list of graphs, y is a list of float values
-    y += epsilon
+def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, test_size=0.1):
+    A = load_data(paths) # A is a list of graphs, y is a list of float values
+    y = load_Tlimits(paths_tlimits)
+    #y += epsilon
     A = cast_list_to_float32(A)
     y = cast_list_to_float32(y)
     A_train, A_val, A_test, y_train, y_val, y_test = split_data(A, y, validation_size=val_size, test_size=test_size)    
@@ -196,11 +196,7 @@ def save_graphs_to_csv(path_in, path_out, file_tipe='clq'):
     save_data(save_file, graphs, Tlimits)
 
 def save_predictions(path, pred):
-    f = open(path, 'w')
-    n = len(pred)
-    f.write(str(n) + "\n")
-    for p in pred:
-        f.write(str(p) + "\n")
+    save_vector(path, pred)
 
 def load_results(path):
     steps = []
@@ -241,7 +237,7 @@ def load_Tlimits(path):
 # Classical ML
 
 def get_features(A):
-    g = nx.from_numpy_matrix(A)
+    g = nx.from_numpy_matrix(A.toarray())
     d = {}
     d['num_nodes'] = nx.number_of_nodes(g)
     d['num_edges'] = nx.number_of_edges(g)
@@ -253,28 +249,42 @@ def get_features(A):
     return d
 
 def create_basic_data(path_in, path_out):
-    print('Creating features ... ', end='')
-    graphs, Tlimits = load_data(path_in)
+    print('Creating features for', path_in)
+    graphs, _ = load_data_from_csv(path_in)
     list_of_dict = []
-    c = 0
     for g in graphs:
         d = get_features(g)
-        d['Tlimit'] = Tlimits[c][0]
         list_of_dict.append(d)
-        c += 1
     df = pd.DataFrame(list_of_dict)
     df.to_csv(path_out)
-    print('Done')
 
-def load_basic_data(path):
+def load_basic_data(list_of_paths):
+    dfs = []
+    for path in list_of_paths:
+        dfs.append(load_basic_data_from_csv(path))
+    return pd.concat(dfs,ignore_index=True)
+    
+def load_basic_data_from_csv(path)
     df = pd.read_csv(path, index_col=0)
     return df
 
 
 if __name__ == "__main__":
-    pass
+    
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
+
+    create_basic_data('../datasets/rand_train.csv', '../datasets/rand_train_features.csv')
+    create_basic_data('../datasets/rand_test.csv', '../datasets/rand_test_features.csv')
+    create_basic_data('../datasets/protein_test.csv', '../datasets/protein_test_features.csv')
+    create_basic_data('../datasets/product_train.csv', '../datasets/product_train_features.csv')
+    create_basic_data('../datasets/product_test.csv', '../datasets/product_test_features.csv')
+    create_basic_data('../datasets/docking_train.csv', '../datasets/docking_train_features.csv')
+    create_basic_data('../datasets/docking_test.csv', '../datasets/docking_test_features.csv')
+
+    A, y = load_data_from_csv('../datasets/rand_train.csv')
+    save_vector('../datasets/rand_train_tlimits.csv', y.flatten())
+
 
