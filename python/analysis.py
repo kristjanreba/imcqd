@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from util import *
+from util import load_results, load_dist, load_Tlimits
 
 eps = 1e-10
 
@@ -40,8 +40,8 @@ def remove_uncompleted(s1, t1, s2, t2):
     print("Number of uncompleted:", n_removed)
     return s1, t1, s2, t2
 
-def plot_distribution(x):
-    x += eps
+def plot_distribution(x, plot_name='Tlimit_dist'):
+    #x += eps
     # histogram on linear scale
     plt.subplot(211)
     hist, bins, _ = plt.hist(x, bins=8)
@@ -56,7 +56,8 @@ def plot_distribution(x):
     plt.xscale('log')
     plt.ylabel('N')
     plt.xlabel('Tlimit')
-    plt.show()
+    #plt.show()
+    plt.savefig('figures/' + plot_name + '.png')
 
 def plot_time_dist():
     Tlimits, times = load_dist('../data/dist.csv')
@@ -77,15 +78,22 @@ def plot_time_dist():
     plt.plot(Tlimits, times)
     plt.axvline(x=0.025, color='r')
 
-    plt.show()
+    plt.savefig('figures/' + plot_name + '.png')
+    #plt.show()
 
 if __name__ == "__main__":
+    plot_distribution(load_Tlimits('../datasets/docking_train_tlimits.csv'), plot_name='Tlimit_dist_docking')
+    plot_distribution(load_Tlimits('../datasets/product_train_tlimits.csv'), plot_name='Tlimit_dist_product')
+    
+    
+
+
 
     #plot_time_dist()
 
-    compare_test_results("protein", "gnn")
-    compare_test_results("dense", "gnn")
-    compare_test_results("rand", "gnn")
+    #compare_test_results("protein", "gnn")
+    #compare_test_results("dense", "gnn")
+    #compare_test_results("rand", "gnn")
     #compare_test_results("dimacs", "gnn")
 
     #compare_test_results("rand", "gbr")

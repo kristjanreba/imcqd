@@ -228,6 +228,15 @@ def load_dist(path):
         times.append(t)
     return Tlimits, times
 
+def load_Tlimits(path):
+    Tlimits = []
+    f = open(path, 'r')
+    lines = f.readlines()
+    n = int(lines[0])
+    for l in lines[1:]:
+        t = float(l)
+        Tlimits.append(t)
+    return Tlimits
 
 # Classical ML
 
@@ -263,9 +272,9 @@ def load_basic_data(path):
 
 
 if __name__ == "__main__":
-
+    pass
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
-    save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
-    save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
 
