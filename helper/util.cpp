@@ -50,7 +50,7 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
     f.close();
 }
 
-void load_vector(std::string path, std::vector<float> *predictions) {
+void load_predictions(std::string path, std::vector<float> *predictions) {
     std::ifstream f(path);
     int n; // number of predictions
     f >> n;

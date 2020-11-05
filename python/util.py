@@ -5,7 +5,7 @@ import pandas as pd
 import re
 from pathlib import Path
 import tensorflow as tf
-from scipy.sparse import dok_matrix
+from scipy.sparse import dok_matrix, coo_matrix
 from sklearn.model_selection import train_test_split
 from spektral.utils.convolution import normalized_adjacency
 
@@ -23,7 +23,7 @@ def load_data_from_folder(path):
     for filename in os.listdir(directory):
         if filename.endswith('.txt'):
             print('Loading from file:', filename)
-            g = load_dimacs_into_csrmatrix(os.path.join(directory, filename))
+            g = load_dimacs_into_sparse_matrix(os.path.join(directory, filename))
             graphs.append(g)
     Tlimits = [0] * len(graphs)
     return graphs, Tlimits
@@ -46,7 +46,7 @@ def load_data_from_csv(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-        g = csr_matrix((n_vertices, n_vertices))
+        g = coo_matrix((n_vertices, n_vertices))
         for j in range(n_edges):
             u, v = lines[counter].split(" ")
             u, v = int(u), int(v)
@@ -61,7 +61,7 @@ def load_data_from_csv(path):
 
 def save_data(path, graphs, Tlimits):
     '''
-    graphs -> list of graps in adjacency matrix format
+    graphs -> list of graps in sparse matrix format
     Tlimits -> list of float values for each graph
 
     function creates a save file of the format that is readable by c++ part
@@ -75,10 +75,11 @@ def save_data(path, graphs, Tlimits):
         n_vertices = g.shape[0]
         n_edges = np.sum(g)
         f.write("{} {}\n".format(n_vertices, int(n_edges)))
-        for j in range(n_vertices):
-            for k in range(j):
-                if g[j,k]: f.write("{} {}\n".format(j, k))
+        cx = coo_matrix(g)
+        for r,c,v in zip(cx.row, cx.col, cx.data):
+            f.write("{} {}\n".format(r, c))
         f.write(str(Tlimits[i]) + "\n")
+    f.close()
 
 def split_data(X, y, validation_size=0.2, test_size=0.1):
     train_size = 1. - (validation_size + test_size)
@@ -263,8 +264,8 @@ def load_basic_data(path):
 
 if __name__ == "__main__":
 
-    save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
-    save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
     save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
     save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
 

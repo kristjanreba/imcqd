@@ -16,6 +16,7 @@ void save_data(std::string, std::vector<Graph>, std::vector<float>);
 void load_data(std::string, std::vector<Graph>, std::vector<float>);
 void generate_train_data(std::string, int, int, int);
 void generate_test_data(std::string);
+void generate_train_data_from_csv(std::string, std::string);
 void get_times(std::vector<Graph>, std::vector<int> *, std::vector<float> *);
 void get_times(std::vector<Graph>, std::vector<float>, std::vector<int> *, std::vector<float> *);
 

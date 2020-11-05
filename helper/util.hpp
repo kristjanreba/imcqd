@@ -16,6 +16,7 @@ void print_array2d(Array2d<bool> a);
 void load_predictions(std::string path, std::vector<float> *predictions);
 void save_results(std::string path, std::vector<int> steps, std::vector<float> times);
 void save_dist(std::string path, std::vector<float> Tlimits, std::vector<float> times);
+void save_vector(std::string path, std::vector<float> v);
 std::vector<float> make_vector(float beg, float end, float step);
 std::vector<float> make_vector(int size, float val);
 
