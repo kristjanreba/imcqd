@@ -11,7 +11,7 @@ from spektral.utils.convolution import normalized_adjacency
 
 epsilon = 1e-6
 
-def load_data_from_folder(path):
+def load_graphs_from_folder(path):
     '''Read all graphs in folder and return them in a list as well as Tlimit values
 
     Returns:
@@ -28,7 +28,7 @@ def load_data_from_folder(path):
     Tlimits = [0] * len(graphs)
     return graphs, Tlimits
 
-def load_data_from_csv(path):
+def load_graphs_from_csv(path):
     '''
     Read file that contains graphs and
     best Tlimit value for each graph.
@@ -112,8 +112,8 @@ def load_data(list_of_paths):
     return A
     
 def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, test_size=0.1):
-    A = load_data(paths) # A is a list of graphs, y is a list of float values
-    y = load_Tlimits(paths_tlimits)
+    A = load_data(paths_graphs) # A is a list of graphs
+    y = load_Tlimits(paths_tlimits) #y is a list of float values
     #y += epsilon
     A = cast_list_to_float32(A)
     y = cast_list_to_float32(y)
@@ -250,7 +250,7 @@ def get_features(A):
 
 def create_basic_data(path_in, path_out):
     print('Creating features for', path_in)
-    graphs, _ = load_data_from_csv(path_in)
+    graphs, _ = load_graphs_from_csv(path_in)
     list_of_dict = []
     for g in graphs:
         d = get_features(g)
@@ -264,27 +264,25 @@ def load_basic_data(list_of_paths):
         dfs.append(load_basic_data_from_csv(path))
     return pd.concat(dfs,ignore_index=True)
     
-def load_basic_data_from_csv(path)
+def load_basic_data_from_csv(path):
     df = pd.read_csv(path, index_col=0)
     return df
 
 
 if __name__ == "__main__":
-    
-    #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
-    #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
-    #save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
-    #save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
 
-    create_basic_data('../datasets/rand_train.csv', '../datasets/rand_train_features.csv')
-    create_basic_data('../datasets/rand_test.csv', '../datasets/rand_test_features.csv')
-    create_basic_data('../datasets/protein_test.csv', '../datasets/protein_test_features.csv')
-    create_basic_data('../datasets/product_train.csv', '../datasets/product_train_features.csv')
-    create_basic_data('../datasets/product_test.csv', '../datasets/product_test_features.csv')
-    create_basic_data('../datasets/docking_train.csv', '../datasets/docking_train_features.csv')
-    create_basic_data('../datasets/docking_test.csv', '../datasets/docking_test_features.csv')
+    save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
+    save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
+    save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
+    save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
 
-    A, y = load_data_from_csv('../datasets/rand_train.csv')
-    save_vector('../datasets/rand_train_tlimits.csv', y.flatten())
+    #create_basic_data('../datasets/rand_train.csv', '../datasets/rand_train_features.csv')
+    #create_basic_data('../datasets/rand_test.csv', '../datasets/rand_test_features.csv')
+    #create_basic_data('../datasets/protein_test.csv', '../datasets/protein_test_features.csv')
+    #create_basic_data('../datasets/docking_train.csv', '../datasets/docking_train_features.csv')
+    #create_basic_data('../datasets/docking_test.csv', '../datasets/docking_test_features.csv')
+    #create_basic_data('../datasets/product_train.csv', '../datasets/product_train_features.csv')
+    #create_basic_data('../datasets/product_test.csv', '../datasets/product_test_features.csv')
+
 
 

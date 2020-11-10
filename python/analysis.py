@@ -41,7 +41,6 @@ def remove_uncompleted(s1, t1, s2, t2):
     return s1, t1, s2, t2
 
 def plot_distribution(x, plot_name='Tlimit_dist'):
-    #x += eps
     # histogram on linear scale
     plt.subplot(211)
     hist, bins, _ = plt.hist(x, bins=8)
@@ -56,8 +55,8 @@ def plot_distribution(x, plot_name='Tlimit_dist'):
     plt.xscale('log')
     plt.ylabel('N')
     plt.xlabel('Tlimit')
-    #plt.show()
     plt.savefig('figures/' + plot_name + '.png')
+    plt.clf()
 
 def plot_time_dist(path):
     Tlimits, times = load_dist(path)
@@ -89,28 +88,14 @@ if __name__ == "__main__":
     plot_distribution(load_Tlimits('../datasets/product_train_tlimits.csv'), plot_name='Tlimit_dist_product')
     plot_distribution(load_Tlimits('../datasets/rand_train_tlimits.csv'), plot_name='Tlimit_dist_rand')
     
-    
+    '''
+    datasets_test = ['rand', 'product', 'docking', 'dense']
+    model_names = ['gcn', 'gbr', 'svr']
+    for model_name in model_names:
+        for dataset in datasets_test:
+            compare_test_results(dataset, model_name)
+    '''
 
 
 
-    #plot_time_dist()
-
-    #compare_test_results("protein", "gnn")
-    #compare_test_results("dense", "gnn")
-    #compare_test_results("rand", "gnn")
-    #compare_test_results("dimacs", "gnn")
-
-    #compare_test_results("rand", "gbr")
-    #compare_test_results("rand", "gnn")
-    #compare_test_results("rand", "gin")
-    #compare_test_results("rand", "adaboost")
-
-    #compare_test_results("dimacs", "gbr")
-    #compare_test_results("dimacs", "gnn")
-    #compare_test_results("dimacs", "gin")
-    #compare_test_results("dimacs", "adaboost")
-
-    #_, Tlimits = load_data('../data/train_data_3.csv')
-    #print('Number of examples with invalid Tlimits:', sum([t <= 0 for t in Tlimits])
-    #plot_distribution(Tlimits)
 

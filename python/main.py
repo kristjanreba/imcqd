@@ -118,8 +118,8 @@ def main():
     log_scale = True
     datasets_train = ['rand', 'product', 'docking']
     datasets_test = ['rand', 'product', 'docking', 'dense']
-    train_paths = [d + '_train.csv'for d in datasets_train]
-    paths_tlimits = [d + '_train_tlimits.csv' for d in datasets_train']
+    train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
+    paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
 
     learning_rate = 1e-4    # Learning rate for SGD
     batch_size = 64         # Batch size

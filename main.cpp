@@ -179,7 +179,6 @@ void generate_train_data_from_csv(std::string path_in, std::string path_out) {
     std::cout << "Loading data from " << path_in << std::endl;
     load_data(path_in, &graphs, &Tlimits);
     int n = graphs.size();
-    n = 1976;
     for (int i = 0; i < n; i++) {
         std::cout << i << std::endl;
         Array2d<bool> g_new(graphs[i].num_nodes);
@@ -219,7 +218,7 @@ void get_times(std::vector<Graph> graphs, std::vector<int> *steps, std::vector<f
 void test_model_on_dataset(std::string dataset, std::string model_name) {
     std::string path_predictions = "pred/" + dataset + "_" + model_name + ".csv";
     std::string path_results_pred = "results/" + dataset + "_" + model_name + ".csv";
-    std::string path_data = "datasets/" + dataset + "_data.csv";
+    std::string path_data = "datasets/" + dataset + "_test.csv";
 
     std::vector<float> predictions;
     std::vector<float> times_pred;
@@ -236,19 +235,20 @@ void test_model_on_dataset(std::string dataset, std::string model_name) {
 }
 
 int main()
-{
-
+{   
     //generate_train_data_from_csv("datasets/docking_train.csv", "datasets/docking_train_tlimits.csv");
-    generate_train_data_from_csv("datasets/product_train.csv", "datasets/product_train_tlimits.csv");
+    //generate_train_data_from_csv("datasets/product_train.csv", "datasets/product_train_tlimits.csv");
+
+    std::vector<std::string> test_datasets = ["protein", "product", "docking", "rand", "dense", "dimacs"];
+    std::vector<std::string> models = ["default", "gnn", "docking", "rand", "dense", "dimacs"];
+    for (int i = 0; i < models.size(); i++) {
+        for (int j = 0; j < test_datasets.size(); j++) {
+            test_model_on_dataset(test_dataset[j], models[i]);
+        }
+    }
 
     
-    //test_model_on_dataset("dense", "gnn");
-    //test_model_on_dataset("protein", "gnn");
-    //test_model_on_dataset("rand", "gnn");
-    //test_model_on_dataset("dimacs", "gnn");
-
-    //test_model_on_dataset("protein", "default");
-    //test_model_on_dataset("dense", "default");
+    
     //test_model_on_dataset("rand", "default");
     //test_model_on_dataset("dimacs", "default");
 
