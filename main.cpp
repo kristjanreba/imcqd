@@ -239,8 +239,8 @@ int main()
     //generate_train_data_from_csv("datasets/docking_train.csv", "datasets/docking_train_tlimits.csv");
     //generate_train_data_from_csv("datasets/product_train.csv", "datasets/product_train_tlimits.csv");
 
-    std::vector<std::string> test_datasets = ["protein", "product", "docking", "rand", "dense", "dimacs"];
-    std::vector<std::string> models = ["default", "gnn", "docking", "rand", "dense", "dimacs"];
+    std::vector<std::string> test_datasets = ["protein", "product", "docking", "rand", "dense"];
+    std::vector<std::string> models = ["default", "gcn", "docking", "rand", "dense"];
     for (int i = 0; i < models.size(); i++) {
         for (int j = 0; j < test_datasets.size(); j++) {
             test_model_on_dataset(test_dataset[j], models[i]);
@@ -248,7 +248,7 @@ int main()
     }
 
     
-    
+
     //test_model_on_dataset("rand", "default");
     //test_model_on_dataset("dimacs", "default");
 

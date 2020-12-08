@@ -5,7 +5,7 @@ import pandas as pd
 import re
 from pathlib import Path
 import tensorflow as tf
-from scipy.sparse import dok_matrix, coo_matrix
+from scipy.sparse import dok_matrix, coo_matrix, csr_matrix
 from sklearn.model_selection import train_test_split
 from spektral.utils.convolution import normalized_adjacency
 
@@ -107,16 +107,22 @@ def load_data(list_of_paths):
     """
     A = []
     for p in list_of_paths:
-        if p.endswith('.csv'): A += load_graphs_from_csv(p)
-        else: A += load_graphs_from_folder(p)
+        if p.endswith('.csv'): 
+            gs, _ = load_graphs_from_csv(p)
+            A += gs
+        else:
+            gs, _ = load_graphs_from_folder(p)
+            A += gs
     return A
     
 def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, test_size=0.1):
     A = load_data(paths_graphs) # A is a list of graphs
     y = load_Tlimits(paths_tlimits) #y is a list of float values
+    print('Number of graphs in train dataset:', len(A))
+    print('Number of Tlimit values:', len(y))
     #y += epsilon
-    A = cast_list_to_float32(A)
-    y = cast_list_to_float32(y)
+    #A = cast_list_to_float32(A)
+    #y = cast_list_to_float32(y)
     A_train, A_val, A_test, y_train, y_val, y_test = split_data(A, y, validation_size=val_size, test_size=test_size)    
     X_train = get_ones_as_feature_vectors(A_train)
     X_val = get_ones_as_feature_vectors(A_val)
@@ -125,14 +131,14 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     print("Val_size:", len(A_val))
     print("Test_size:", len(A_test))
 
-    X_train = cast_list_to_float32(X_train)
-    X_val = cast_list_to_float32(X_val)
-    X_test = cast_list_to_float32(X_test)
+    #X_train = cast_list_to_float32(X_train)
+    #X_val = cast_list_to_float32(X_val)
+    #X_test = cast_list_to_float32(X_test)
 
     # Preprocessing
-    A_train = [normalized_adjacency(csr_matrix(a)) for a in A_train]
-    A_val = [normalized_adjacency(csr_matrix(a)) for a in A_val]
-    A_test = [normalized_adjacency(csr_matrix(a)) for a in A_test]
+    A_train = [normalized_adjacency(a) for a in A_train]
+    A_val = [normalized_adjacency(a) for a in A_val]
+    A_test = [normalized_adjacency(a) for a in A_test]
 
     F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
     n_out = 1 # regression requires 1 output value (Tlimit)
@@ -224,7 +230,7 @@ def load_dist(path):
         times.append(t)
     return Tlimits, times
 
-def load_Tlimits(path):
+def load_Tlimits_from_csv(path):
     Tlimits = []
     f = open(path, 'r')
     lines = f.readlines()
@@ -232,6 +238,12 @@ def load_Tlimits(path):
     for l in lines[1:]:
         t = float(l)
         Tlimits.append(t)
+    return Tlimits
+    
+def load_Tlimits(paths):
+    Tlimits = []
+    for p in paths:
+        Tlimits += load_Tlimits_from_csv(p)
     return Tlimits
 
 # Classical ML
@@ -270,11 +282,12 @@ def load_basic_data_from_csv(path):
 
 
 if __name__ == "__main__":
+    pass
 
-    save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
-    save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
-    save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
-    save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
+    #save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
 
     #create_basic_data('../datasets/rand_train.csv', '../datasets/rand_train_features.csv')
     #create_basic_data('../datasets/rand_test.csv', '../datasets/rand_test_features.csv')
