@@ -7,8 +7,8 @@ eps = 1e-10
 
 def compare_test_results(dataset, model_name):
     print('Comparing test results for {} on {} graphs:'.format(model_name, dataset))
-    s1, t1 = load_results('../data/results/{}_{}.csv'.format(dataset, 'default'))
-    s2, t2 = load_results('../data/results/{}_{}.csv'.format(dataset, model_name))
+    s1, t1 = load_results('../results/{}_{}.csv'.format(dataset, 'default'))
+    s2, t2 = load_results('../results/{}_{}.csv'.format(dataset, model_name))
 
     s1, t1, s2, t2 = remove_uncompleted(s1, t1, s2, t2)
     s1 = np.array(s1)
@@ -45,7 +45,7 @@ def plot_distribution(x, plot_name='Tlimit_dist'):
     plt.subplot(211)
     hist, bins, _ = plt.hist(x, bins=8)
     plt.ylabel('N')
-    plt.xlabel('Tlimit')
+    #plt.xlabel('Tlimit')
 
     # histogram on log scale.
     # Use non-equal bin sizes, such that they look equal on log scale.
@@ -83,18 +83,19 @@ def plot_time_dist(path):
 
 if __name__ == "__main__":
     
+    #plot_distribution(load_Tlimits(['../datasets/docking_train_tlimits.csv']), plot_name='Tlimit_dist_docking')
+    #plot_distribution(load_Tlimits(['../datasets/product_train_tlimits.csv']), plot_name='Tlimit_dist_product')
+    #plot_distribution(load_Tlimits(['../datasets/rand_train_tlimits.csv']), plot_name='Tlimit_dist_rand')
     
-    plot_distribution(load_Tlimits('../datasets/docking_train_tlimits.csv'), plot_name='Tlimit_dist_docking')
-    plot_distribution(load_Tlimits('../datasets/product_train_tlimits.csv'), plot_name='Tlimit_dist_product')
-    plot_distribution(load_Tlimits('../datasets/rand_train_tlimits.csv'), plot_name='Tlimit_dist_rand')
+    # train datasets: rand, product, docking
+    # test datasets: rand, dense, product, docking, protein, dimacs
     
-    '''
-    datasets_test = ['rand', 'product', 'docking', 'dense']
-    model_names = ['gcn', 'gbr', 'svr']
+    datasets_test = ['rand', 'docking', 'dense']
+    model_names = ['gcn', 'xgb', 'svr']
     for model_name in model_names:
         for dataset in datasets_test:
             compare_test_results(dataset, model_name)
-    '''
+    
 
 
 

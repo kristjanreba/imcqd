@@ -114,10 +114,10 @@ def main():
     # Parameters
     model_name = 'gcn'
     load_model = False
-    train_model = True
+    train_model = False
     log_scale = True
     datasets_train = ['rand', 'product', 'docking']
-    datasets_test = ['rand', 'product', 'docking', 'dense']
+    datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
     train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
     paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
 

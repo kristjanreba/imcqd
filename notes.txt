@@ -1,0 +1,29 @@
+
+# Datasets
+There are 3 train datasets and 5 test datasets in dataset folder
+Train datasets: rand, product, docking
+Test datasets: rand, dense, product, docking, protein, dimacs
+
+Steps to get the final results:
+1. Generate graphs (random, dense, product, docking)
+2. Extract features from each graph and create a separate feature dataset
+3. Create train datasets for each type of graph using MCQD algorithm
+4. Create test datasets for each type of graph by running MCQD for default value
+5. Train all the models the train datasets
+6. Make predictions for all the models for each of the test datasets
+7. Run MCQD algorithm again for each prediction on test dataset
+8. Evaluation: compare the time of predicted values to default value of MCQD algorithm
+
+
+Todo:
+- make make step 1 and 2 into a single function
+- make step 3 and 4 into a single function
+- make step 5 and 6 into a single function
+- make create a script that will handle the whole process from step 3 to step 8 with a single call
+
+
+Ideas for improvements:
+- use bayesian optimization for sampling best Tlimit parameter for train set
+- when creating train datasets, use default Tlimit value if time difference 
+is small from best to default value
+
