@@ -81,10 +81,9 @@ def make_prediction(A, X, model, log_scale):
     return pred
 
 def predict_dataset(dataset, model_name, log_scale=False):
-    path_data = ''
+    print('Predicting ' + dataset + ' with ' + model_name)
+    path_data = '../datasets/{}_test.csv'.format(dataset)
     path_out = '../pred/{}_{}.csv'.format(dataset, model_name)
-    if dataset == 'protein_graphs' or dataset == 'docking_graphs': path_data = '../datasets/{}/test/'.format(dataset)
-    else: path_data = '../datasets/{}_data.csv'.format(dataset)
     A_list, X_list = load_and_preprocess_test_data(path_data)
     model = create_model(model_name, True)
     Tlimits = []
@@ -114,7 +113,7 @@ def main():
     # Parameters
     model_name = 'gcn'
     load_model = False
-    train_model = False
+    train_model = True
     log_scale = True
     datasets_train = ['rand', 'product', 'docking']
     datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']

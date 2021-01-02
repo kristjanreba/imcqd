@@ -46,7 +46,8 @@ def load_graphs_from_csv(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-        g = dok_matrix((n_vertices, n_vertices))
+        g = csr_matrix((n_vertices, n_vertices), dtype=np.int32)
+        #g = np.zeros((n_vertices, n_vertices))
         for j in range(n_edges):
             u, v = lines[counter].split(" ")
             u, v = int(u), int(v)
@@ -75,7 +76,7 @@ def save_data(path, graphs, Tlimits):
         n_vertices = g.shape[0]
         n_edges = np.sum(g)
         f.write("{} {}\n".format(n_vertices, int(n_edges)))
-        cx = coo_matrix(g)
+        cx = csr_matrix(g)
         for r,c,v in zip(cx.row, cx.col, cx.data):
             f.write("{} {}\n".format(r, c))
         f.write(str(Tlimits[i]) + "\n")
@@ -121,8 +122,8 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     print('Number of graphs in train dataset:', len(A))
     print('Number of Tlimit values:', len(y))
     #y += epsilon
-    #A = cast_list_to_float32(A)
-    #y = cast_list_to_float32(y)
+    A = cast_list_to_float32(A)
+    y = cast_list_to_float32(y)
     A_train, A_val, A_test, y_train, y_val, y_test = split_data(A, y, validation_size=val_size, test_size=test_size)    
     X_train = get_ones_as_feature_vectors(A_train)
     X_val = get_ones_as_feature_vectors(A_val)
@@ -131,14 +132,14 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     print("Val_size:", len(A_val))
     print("Test_size:", len(A_test))
 
-    #X_train = cast_list_to_float32(X_train)
-    #X_val = cast_list_to_float32(X_val)
-    #X_test = cast_list_to_float32(X_test)
+    X_train = cast_list_to_float32(X_train)
+    X_val = cast_list_to_float32(X_val)
+    X_test = cast_list_to_float32(X_test)
 
     # Preprocessing
-    A_train = [normalized_adjacency(a) for a in A_train]
-    A_val = [normalized_adjacency(a) for a in A_val]
-    A_test = [normalized_adjacency(a) for a in A_test]
+    A_train = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_train]
+    A_val = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_val]
+    A_test = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_test]
 
     F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
     n_out = 1 # regression requires 1 output value (Tlimit)
@@ -146,11 +147,12 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     return A_train, A_val, A_test, X_train, X_val, X_test, y_train, y_val, y_test, F, n_out
 
 def load_and_preprocess_test_data(path):
-    A_list, _ = load_data(path) # A is a list of graphs, y is a list of float values
+    #print(path)
+    A_list = load_data([path]) # A is a list of graphs, y is a list of float values
     A_list = cast_list_to_float32(A_list)
     X_list = get_ones_as_feature_vectors(A_list)
     X_list = cast_list_to_float32(X_list)
-    A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
+    A_list = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_list]
     return A_list, X_list
 
 def load_dimacs_into_sparse_matrix(path):
@@ -165,7 +167,7 @@ def load_dimacs_into_sparse_matrix(path):
             if len(retval) == 4: _, _, n_vertices, _ = retval
             else: _, _, n_vertices = retval
             n_vertices = int(n_vertices)
-            g = dok_matrix((n_vertices, n_vertices), dtype=np.int8)
+            g = csr_matrix((n_vertices, n_vertices), dtype=np.int32)
             #g = np.zeros((n_vertices, n_vertices))
         elif l[0] == 'e':
             _, u, v = l.split(" ")
@@ -282,13 +284,13 @@ def load_basic_data_from_csv(path):
 
 
 if __name__ == "__main__":
-    pass
 
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
 
+    
     #create_basic_data('../datasets/rand_train.csv', '../datasets/rand_train_features.csv')
     #create_basic_data('../datasets/rand_test.csv', '../datasets/rand_test_features.csv')
     #create_basic_data('../datasets/protein_test.csv', '../datasets/protein_test_features.csv')
@@ -296,6 +298,9 @@ if __name__ == "__main__":
     #create_basic_data('../datasets/docking_test.csv', '../datasets/docking_test_features.csv')
     #create_basic_data('../datasets/product_train.csv', '../datasets/product_train_features.csv')
     #create_basic_data('../datasets/product_test.csv', '../datasets/product_test_features.csv')
+    #create_basic_data('../datasets/dense_test.csv', '../datasets/dense_test_features.csv')
+    
+    pass
 
 
 
