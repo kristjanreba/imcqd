@@ -11,11 +11,11 @@ from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 
-from spektral.layers import GraphConvSkip, GlobalAvgPool, GraphConv, GINConv
+from spektral.layers import GlobalAvgPool, GCNConv, GINConv, GATConv
 from spektral.layers import ops
 from spektral.layers.pooling import TopKPool
 from spektral.utils.convolution import normalized_adjacency
-from spektral.utils.data import batch_iterator, numpy_to_disjoint
+from spektral.data.utils import batch_generator, to_disjoint
 
 from util import *
 
@@ -24,6 +24,7 @@ def create_model(model_name, load_model):
     F, n_out = 1, 1
     if model_name == 'gcn': model = create_model_gcn(F, n_out)
     elif model_name == 'gin': model = create_model_gin(F, n_out)
+    elif model_name == 'gat': model = create_model_gat(F, n_out)
     else:
         print('No model with that name.')
         exit()
@@ -50,23 +51,39 @@ def create_model_gcn(F, n_out):
     A_in = Input(shape=(None,), sparse=True)
     I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
 
-    X_1 = GraphConvSkip(64, activation='relu')([X_in, A_in])
+    X_1 = GCNonv(64, activation='relu')([X_in, A_in])
     X_1, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A_in, I_in])
-    X_2 = GraphConvSkip(64, activation='relu')([X_1, A_1])
+    X_2 = GCNConv(64, activation='relu')([X_1, A_1])
     X_2, A_2, I_2 = TopKPool(ratio=0.5)([X_2, A_1, I_1])
-    X_3 = GraphConvSkip(64, activation='relu')([X_2, A_2])
+    X_3 = GCNConv(64, activation='relu')([X_2, A_2])
     X_3 = GlobalAvgPool()([X_3, I_2])
     output = Dense(n_out)(X_3)
 
     model = Model(inputs=[X_in, A_in, I_in], outputs=output)
     return model
 
+def create_model_gat(F, n_out):
+    X_in = Input(shape=(F, ), name='X_in')
+    A_in = Input(shape=(None,), sparse=True)
+    I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
+
+    X_1 = GATConv(128, activation='relu')([X_in, A_in])
+    X_1, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A_in, I_in])
+    X_2 = GATConv(128, activation='relu')([X_1, A_1])
+    X_2, A_2, I_2 = TopKPool(ratio=0.5)([X_2, A_1, I_1])
+    X_3 = GATConv(128, activation='relu')([X_2, A_2])
+    X_3 = GlobalAvgPool()([X_3, I_2])
+    output = Dense(n_out)(X_3)
+    model = Model(inputs=[X_in, A_in, I_in], outputs=output)
+    return model
+
+
 def make_prediction(A, X, model, log_scale):
     '''
     input -> g is a numpy adjacency matrix
     output -> Tlimit value
     '''
-    X_, A_, I_ = numpy_to_disjoint([X], [A])
+    X_, A_, I_ = to_disjoint([X], [A])
     A_ = ops.sp_matrix_to_sp_tensor(A_)
     pred = model([X_, A_, I_], training=False)
     pred = K.eval(pred[0][0]) # convert from tensor to float
@@ -97,10 +114,10 @@ def predict_dataset(dataset, model_name, log_scale=False):
 def main():
 
     def evaluate(A_list, X_list, y_list, ops_list, batch_size):
-        batches = batch_iterator([X_list, A_list, y_list], batch_size=batch_size)
+        batches = batch_generator([X_list, A_list, y_list], batch_size=batch_size)
         output = []
         for b in batches:
-            X, A, I = numpy_to_disjoint(*b[:-1])
+            X, A, I = to_disjoint(*b[:-1])
             A = ops.sp_matrix_to_sp_tensor(A)
             y = b[-1]
             pred = model([X, A, I], training=False)
@@ -111,7 +128,7 @@ def main():
     
     
     # Parameters
-    model_name = 'gcn'
+    model_name = 'gat'
     load_model = False
     train_model = True
     log_scale = True
@@ -173,12 +190,12 @@ def main():
         batches_in_epoch = np.ceil(y_train.shape[0] / batch_size)
 
         print('Fitting model')
-        batches = batch_iterator([X_train, A_train, y_train],
+        batches = batch_generator([X_train, A_train, y_train],
                                 batch_size=batch_size, epochs=epochs)
         for b in batches:
             current_batch += 1
 
-            X_, A_, I_ = numpy_to_disjoint(*b[:-1])
+            X_, A_, I_ = to_disjoint(*b[:-1])
             A_ = ops.sp_matrix_to_sp_tensor(A_)
             y_ = b[-1]
             outs = train_step(X_, A_, I_, y_)
