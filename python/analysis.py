@@ -55,10 +55,10 @@ def plot_distribution(x, plot_name='Tlimit_dist'):
     plt.xscale('log')
     plt.ylabel('N')
     plt.xlabel('Tlimit')
-    plt.savefig('figures/' + plot_name + '.png')
+    plt.savefig('figures/' + plot_name + '.png', dpi=300)
     plt.clf()
 
-def plot_time_dist(path):
+def plot_time_dist(path, plot_name):
     Tlimits, times = load_dist(path)
     # filter out failed Tlimits
     Tlimits = [Tlimits[i] for i in range(len(times)) if times[i] > 0]
@@ -67,7 +67,6 @@ def plot_time_dist(path):
     plt.figure(figsize=(10,5))
     plt.subplot(211)
     plt.ylabel('time (s)')
-    plt.xlabel('Tlimit')
     plt.plot(Tlimits, times)
     plt.axvline(x=0.025, color='r')
 
@@ -78,7 +77,8 @@ def plot_time_dist(path):
     plt.plot(Tlimits, times)
     plt.axvline(x=0.025, color='r')
 
-    plt.savefig('figures/' + plot_name + '.png')
+    plt.savefig('figures/' + plot_name + '.png', dpi=300)
+    plt.clf()
     #plt.show()
 
 if __name__ == "__main__":
@@ -87,15 +87,23 @@ if __name__ == "__main__":
     #plot_distribution(load_Tlimits(['../datasets/product_train_tlimits.csv']), plot_name='Tlimit_dist_product')
     #plot_distribution(load_Tlimits(['../datasets/rand_train_tlimits.csv']), plot_name='Tlimit_dist_rand')
     
+
+    #plot_time_dist('../datasets/dist_docking.csv', plot_name='time_dist_docking4')
+    #plot_time_dist('../datasets/dist_product.csv', plot_name='time_dist_product')
+    #plot_time_dist('../datasets/dist_rand.csv', plot_name='time_dist_rand')
+    #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_dimacs')
+    plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
+
     # train datasets: rand, product, docking
     # test datasets: rand, dense, product, docking, protein, dimacs
-    
+
+    '''
     datasets_test = ['rand', 'docking', 'dense']
     model_names = ['gcn', 'xgb', 'svr']
     for model_name in model_names:
         for dataset in datasets_test:
             compare_test_results(dataset, model_name)
-    
+    '''
 
 
 
