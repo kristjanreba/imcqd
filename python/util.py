@@ -46,8 +46,7 @@ def load_graphs_from_csv(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-        g = csr_matrix((n_vertices, n_vertices), dtype=np.int32)
-        #g = np.zeros((n_vertices, n_vertices))
+        g = dok_matrix((n_vertices, n_vertices))
         for j in range(n_edges):
             u, v = lines[counter].split(" ")
             u, v = int(u), int(v)
@@ -76,7 +75,7 @@ def save_data(path, graphs, Tlimits):
         n_vertices = g.shape[0]
         n_edges = np.sum(g)
         f.write("{} {}\n".format(n_vertices, int(n_edges)))
-        cx = csr_matrix(g)
+        cx = coo_matrix(g)
         for r,c,v in zip(cx.row, cx.col, cx.data):
             f.write("{} {}\n".format(r, c))
         f.write(str(Tlimits[i]) + "\n")
@@ -114,8 +113,9 @@ def load_data(list_of_paths):
         else:
             gs, _ = load_graphs_from_folder(p)
             A += gs
+        print('Loaded graphs from', p)
     return A
-    
+
 def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, test_size=0.1):
     A = load_data(paths_graphs) # A is a list of graphs
     y = load_Tlimits(paths_tlimits) #y is a list of float values
@@ -137,9 +137,9 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     X_test = cast_list_to_float32(X_test)
 
     # Preprocessing
-    A_train = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_train]
-    A_val = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_val]
-    A_test = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_test]
+    A_train = [normalized_adjacency(csr_matrix(a)) for a in A_train]
+    A_val = [normalized_adjacency(csr_matrix(a)) for a in A_val]
+    A_test = [normalized_adjacency(csr_matrix(a)) for a in A_test]
 
     F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
     n_out = 1 # regression requires 1 output value (Tlimit)
@@ -152,7 +152,7 @@ def load_and_preprocess_test_data(path):
     A_list = cast_list_to_float32(A_list)
     X_list = get_ones_as_feature_vectors(A_list)
     X_list = cast_list_to_float32(X_list)
-    A_list = [normalized_adjacency(csr_matrix(a, dtype=np.int32)) for a in A_list]
+    A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
     return A_list, X_list
 
 def load_dimacs_into_sparse_matrix(path):
@@ -167,7 +167,7 @@ def load_dimacs_into_sparse_matrix(path):
             if len(retval) == 4: _, _, n_vertices, _ = retval
             else: _, _, n_vertices = retval
             n_vertices = int(n_vertices)
-            g = csr_matrix((n_vertices, n_vertices), dtype=np.int32)
+            g = dok_matrix((n_vertices, n_vertices), dtype=np.int8)
             #g = np.zeros((n_vertices, n_vertices))
         elif l[0] == 'e':
             _, u, v = l.split(" ")

@@ -77,7 +77,6 @@ def create_model_gat(F, n_out):
     model = Model(inputs=[X_in, A_in, I_in], outputs=output)
     return model
 
-
 def make_prediction(A, X, model, log_scale):
     '''
     input -> g is a numpy adjacency matrix
@@ -132,12 +131,12 @@ def main():
     load_model = False
     train_model = True
     log_scale = True
-    datasets_train = ['rand', 'product', 'docking']
+    datasets_train = ['rand']#, 'product', 'docking']
     datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
     train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
     paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
 
-    learning_rate = 1e-4    # Learning rate for SGD
+    learning_rate = 1e-4    # Learning rate for optimizer
     batch_size = 64         # Batch size
     epochs = 20             # Number of training epochs
     es_patience = 50        # Patience fot early stopping
@@ -174,7 +173,7 @@ def main():
                 predictions = model([X_, A_, I_], training=True)
                 loss = loss_fn(y_, predictions)
                 loss += sum(model.losses)
-                acc = acc_fn(y_, predictions) 
+                acc = acc_fn(y_, predictions)
             gradients = tape.gradient(loss, model.trainable_variables)
             opt.apply_gradients(zip(gradients, model.trainable_variables))
             return loss, acc

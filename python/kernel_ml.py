@@ -12,13 +12,12 @@ from util import *
 
 
 if __name__ == "__main__":
-    datasets_train = ['rand', 'product', 'docking']
+    datasets_train = ['rand', 'product']#, 'docking']
     datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
 
     model_name = 'svr_wl'
     log_scale = True
     test_size = 0.1
-
 
     # load and process data
     print('Loading and preprocessing data...')
@@ -31,14 +30,13 @@ if __name__ == "__main__":
     if log_scale: y = np.log10(np.array(y) + epsilon)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True)
-
     # create model, fit and predict data
-    kernel = WeisfeilerLehman(base_graph_kernel=VertexHistogram)
+    kernel = WeisfeilerLehman(base_graph_kernel=VertexHistogram, n_jobs=-1)
     K_train = kernel.fit_transform(X_train)
     K_test = kernel.transform(X_test)
 
-    print("Fitting the model ...\n")
-    model = SVR(kernel='precomputed')
+    print("Fitting the model ...")
+    model = SVR(kernel='precomputed', cache_size=7000, max_iter=100000)
     model.fit(K_train, y_train) # Fit on the train Kernel
     y_train_pred = model.predict(K_train)
     y_test_pred = model.predict(K_test)
