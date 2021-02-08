@@ -131,7 +131,8 @@ def main():
     load_model = False
     train_model = True
     log_scale = True
-    datasets_train = ['rand']#, 'product', 'docking']
+
+    datasets_train = ['rand', 'product', 'docking']
     datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
     train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
     paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
@@ -162,12 +163,17 @@ def main():
             y_test = np.log10(y_test + epsilon)
 
 
-        @tf.function(
-            input_signature=(tf.TensorSpec((None, F), dtype=tf.float32),
-                            tf.SparseTensorSpec((None, None), dtype=tf.float32),
-                            tf.TensorSpec((None,), dtype=tf.int32),
-                            tf.TensorSpec((None, n_out), dtype=tf.float32)),
-            experimental_relax_shapes=True)
+        print(X_train[0].dtype)
+        print(A_train[0].dtype)
+        print(type(y_train[0]))
+
+        #@tf.function(
+        #    input_signature=(tf.TensorSpec((None, F), dtype=tf.float32),
+        ##                    tf.SparseTensorSpec((None, None), dtype=tf.float32),
+         #                   tf.TensorSpec((None,), dtype=tf.int32),
+        #                    tf.TensorSpec((None, n_out), dtype=tf.float32)),
+        #    experimental_relax_shapes=True)
+        @tf.function
         def train_step(X_, A_, I_, y_):
             with tf.GradientTape() as tape:
                 predictions = model([X_, A_, I_], training=True)
@@ -198,19 +204,16 @@ def main():
             A_ = ops.sp_matrix_to_sp_tensor(A_)
             y_ = b[-1]
             outs = train_step(X_, A_, I_, y_)
-
             model_loss += outs[0]
             model_acc += outs[1]
             if current_batch == batches_in_epoch:
                 epoch += 1
                 model_loss /= batches_in_epoch
                 model_acc /= batches_in_epoch
-
                 # Compute validation loss and accuracy
                 val_loss, val_acc = evaluate(A_val, X_val, y_val, [loss_fn, acc_fn], batch_size=batch_size)
                 print('Ep. {} - Loss: {:.6f} - RMSE: {:.4f} - Val loss: {:.6f} - Val RMSE: {:.4f}'
                     .format(epoch, model_loss, model_acc, val_loss, val_acc))
-
                 # Check if loss improved for early stopping
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss

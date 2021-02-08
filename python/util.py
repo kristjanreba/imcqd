@@ -46,7 +46,8 @@ def load_graphs_from_csv(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-        g = dok_matrix((n_vertices, n_vertices))
+        #g = dok_matrix((n_vertices, n_vertices))
+        g = np.zeros((n_vertices, n_vertices), dtype=np.int8)
         for j in range(n_edges):
             u, v = lines[counter].split(" ")
             u, v = int(u), int(v)
@@ -122,9 +123,12 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     print('Number of graphs in train dataset:', len(A))
     print('Number of Tlimit values:', len(y))
     #y += epsilon
+    A = [normalized_adjacency(a) for a in A]
     A = cast_list_to_float32(A)
+    A = [csr_matrix(a) for a in A]
+    
     y = cast_list_to_float32(y)
-    A_train, A_val, A_test, y_train, y_val, y_test = split_data(A, y, validation_size=val_size, test_size=test_size)    
+    A_train, A_val, A_test, y_train, y_val, y_test = split_data(A, y, validation_size=val_size, test_size=test_size)
     X_train = get_ones_as_feature_vectors(A_train)
     X_val = get_ones_as_feature_vectors(A_val)
     X_test = get_ones_as_feature_vectors(A_test)
@@ -137,9 +141,9 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     X_test = cast_list_to_float32(X_test)
 
     # Preprocessing
-    A_train = [normalized_adjacency(csr_matrix(a)) for a in A_train]
-    A_val = [normalized_adjacency(csr_matrix(a)) for a in A_val]
-    A_test = [normalized_adjacency(csr_matrix(a)) for a in A_test]
+    #A_train = [normalized_adjacency(a) for a in A_train]
+    #A_val = [normalized_adjacency(a) for a in A_val]
+    #A_test = [normalized_adjacency(a) for a in A_test]
 
     F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
     n_out = 1 # regression requires 1 output value (Tlimit)
