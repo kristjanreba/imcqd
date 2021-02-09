@@ -33,48 +33,42 @@ def create_model(model_name, load_model):
 
 def create_model_gin(F, n_out):
     X_in = Input(shape=(F, ), name='X_in')
-    A_in = Input(shape=(None,), sparse=True)
-    I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
+    A = Input(shape=(None,), sparse=True)
+    I = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
 
-    X_1 = GINConv(128, activation='relu')([X_in, A_in])
-    X_1, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A_in, I_in])
-    X_2 = GINConv(128, activation='relu')([X_1, A_1])
-    X_2, A_2, I_2 = TopKPool(ratio=0.5)([X_2, A_1, I_1])
-    X_3 = GINConv(128, activation='relu')([X_2, A_2])
-    X_3 = GlobalAvgPool()([X_3, I_2])
-    output = Dense(n_out)(X_3)
-    model = Model(inputs=[X_in, A_in, I_in], outputs=output)
+    X_1 = GINConv(128)([X_in, A])
+    X_2 = GINConv(128)([X_1, A])
+    X_3 = GlobalAvgPool()([X_2, I])
+    X_4 = Dense(128, activation='relu')(X_3)
+    output = Dense(n_out)(X_4)
+    model = Model(inputs=[X_in, A, I], outputs=output)
     return model
 
 def create_model_gcn(F, n_out):
     X_in = Input(shape=(F, ), name='X_in')
-    A_in = Input(shape=(None,), sparse=True)
-    I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
+    A = Input(shape=(None,), sparse=True)
+    I = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
 
-    X_1 = GCNonv(64, activation='relu')([X_in, A_in])
-    X_1, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A_in, I_in])
-    X_2 = GCNConv(64, activation='relu')([X_1, A_1])
-    X_2, A_2, I_2 = TopKPool(ratio=0.5)([X_2, A_1, I_1])
-    X_3 = GCNConv(64, activation='relu')([X_2, A_2])
-    X_3 = GlobalAvgPool()([X_3, I_2])
-    output = Dense(n_out)(X_3)
-
-    model = Model(inputs=[X_in, A_in, I_in], outputs=output)
+    X_1 = GCNonv(128, activation='relu')([X_in, A_in])
+    X_2, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A, I])
+    X_3 = GCNConv(128, activation='relu')([X_2, A_1])
+    X_4 = GlobalAvgPool()([X_3, I_2])
+    X_5 = Dense(128, activation='relu')(X_4)
+    output = Dense(n_out)(X_5)
+    model = Model(inputs=[X_in, A, I], outputs=output)
     return model
 
 def create_model_gat(F, n_out):
     X_in = Input(shape=(F, ), name='X_in')
-    A_in = Input(shape=(None,), sparse=True)
-    I_in = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
+    A = Input(shape=(None,), sparse=True)
+    I = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
 
-    X_1 = GATConv(128, activation='relu')([X_in, A_in])
-    X_1, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A_in, I_in])
-    X_2 = GATConv(128, activation='relu')([X_1, A_1])
-    X_2, A_2, I_2 = TopKPool(ratio=0.5)([X_2, A_1, I_1])
-    X_3 = GATConv(128, activation='relu')([X_2, A_2])
-    X_3 = GlobalAvgPool()([X_3, I_2])
-    output = Dense(n_out)(X_3)
-    model = Model(inputs=[X_in, A_in, I_in], outputs=output)
+    X_1 = GATConv(128, activation='relu')([X_in, A])
+    X_2 = GATConv(128, activation='relu')([X_1, A])
+    X_3 = GlobalAvgPool()([X_2, I])
+    X_4 = Dense(128, activation='relu')(X_3)
+    output = Dense(n_out)(X_4)
+    model = Model(inputs=[X_in, A, I], outputs=output)
     return model
 
 def make_prediction(A, X, model, log_scale):
@@ -113,8 +107,9 @@ def predict_dataset(dataset, model_name, log_scale=False):
 def main():
 
     def evaluate(A_list, X_list, y_list, ops_list, batch_size):
-        batches = batch_generator([X_list, A_list, y_list], batch_size=batch_size)
+        batches = batch_generator([X_list, A_list, y_list], batch_size=batch_size, epochs=1)
         output = []
+        print('stuck in evaluate')
         for b in batches:
             X, A, I = to_disjoint(*b[:-1])
             A = ops.sp_matrix_to_sp_tensor(A)
@@ -127,15 +122,18 @@ def main():
     
     
     # Parameters
-    model_name = 'gat'
+    model_name = 'gin'
     load_model = False
     train_model = True
     log_scale = True
 
-    datasets_train = ['rand', 'product', 'docking']
-    datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
-    train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
-    paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
+    #datasets_train = ['rand', 'product', 'docking']
+    #datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
+    #train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
+    #paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
+    train_paths = ['../datasets/rand_data.csv']
+    paths_tlimits = ['../datasets/bugg.csv']
+
 
     learning_rate = 1e-4    # Learning rate for optimizer
     batch_size = 64         # Batch size
@@ -163,17 +161,19 @@ def main():
             y_test = np.log10(y_test + epsilon)
 
 
-        print(X_train[0].dtype)
-        print(A_train[0].dtype)
-        print(type(y_train[0]))
+        #print(X_train[0].dtype)
+        #print(A_train[0].dtype)
+        #print(type(y_train[0]))
 
         #@tf.function(
         #    input_signature=(tf.TensorSpec((None, F), dtype=tf.float32),
-        ##                    tf.SparseTensorSpec((None, None), dtype=tf.float32),
-         #                   tf.TensorSpec((None,), dtype=tf.int32),
+        #                    tf.SparseTensorSpec((None, None), dtype=tf.float32),
+        #                    tf.TensorSpec((None,), dtype=tf.int32),
         #                    tf.TensorSpec((None, n_out), dtype=tf.float32)),
         #    experimental_relax_shapes=True)
-        @tf.function
+        @tf.function(
+            experimental_relax_shapes=True
+        )
         def train_step(X_, A_, I_, y_):
             with tf.GradientTape() as tape:
                 predictions = model([X_, A_, I_], training=True)
@@ -184,7 +184,7 @@ def main():
             opt.apply_gradients(zip(gradients, model.trainable_variables))
             return loss, acc
 
-
+        
         current_batch = 0
         epoch = 0
         model_loss = 0
@@ -228,7 +228,7 @@ def main():
                 model_loss = 0
                 model_acc = 0
                 current_batch = 0
-    
+
         print('Saving model to file')
         model.set_weights(best_weights)
         model.save_weights('saved_models/' + model_name + '.h5')

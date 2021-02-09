@@ -140,11 +140,6 @@ def load_and_preprocess_train_data(paths_graphs, paths_tlimits, val_size=0.1, te
     X_val = cast_list_to_float32(X_val)
     X_test = cast_list_to_float32(X_test)
 
-    # Preprocessing
-    #A_train = [normalized_adjacency(a) for a in A_train]
-    #A_val = [normalized_adjacency(a) for a in A_val]
-    #A_test = [normalized_adjacency(a) for a in A_test]
-
     F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
     n_out = 1 # regression requires 1 output value (Tlimit)
 
