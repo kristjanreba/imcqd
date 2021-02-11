@@ -240,7 +240,8 @@ int main()
     //generate_train_data_from_csv("datasets/product_train.csv", "datasets/product_train_tlimits.csv");
 
     std::vector<std::string> test_datasets = {"protein", "product", "docking", "rand", "dense"};
-    std::vector<std::string> models = {"default", "gcn", "xgb", "svr", "gbr"};
+    //std::vector<std::string> models = {"default", "gcn", "xgb", "svr", "gbr"};
+    std::vector<std::string> models = {"gcn", "gin", "gat"};
     for (int i = 0; i < models.size(); i++) {
         for (int j = 0; j < test_datasets.size(); j++) {
             test_model_on_dataset(test_datasets[j], models[i]);

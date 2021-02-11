@@ -49,10 +49,10 @@ def create_model_gcn(F, n_out):
     A = Input(shape=(None,), sparse=True)
     I = Input(shape=(), name='segment_ids_in', dtype=tf.int32)
 
-    X_1 = GCNonv(128, activation='relu')([X_in, A_in])
+    X_1 = GCNConv(128, activation='relu')([X_in, A])
     X_2, A_1, I_1 = TopKPool(ratio=0.5)([X_1, A, I])
     X_3 = GCNConv(128, activation='relu')([X_2, A_1])
-    X_4 = GlobalAvgPool()([X_3, I_2])
+    X_4 = GlobalAvgPool()([X_3, I_1])
     X_5 = Dense(128, activation='relu')(X_4)
     output = Dense(n_out)(X_5)
     model = Model(inputs=[X_in, A, I], outputs=output)
@@ -104,7 +104,7 @@ def predict_dataset(dataset, model_name, log_scale=False):
         Tlimits.append(pred)
     save_predictions(path_out, Tlimits)
 
-def main():
+def train_eval(model_name):
 
     def evaluate(A_list, X_list, y_list, ops_list, batch_size):
         batches = batch_generator([X_list, A_list, y_list], batch_size=batch_size, epochs=1)
@@ -119,25 +119,23 @@ def main():
             #print("{} {}".format(y[0], pred[0]))
             output.append(outs)
         return np.mean(output, 0)
-    
-    
+
     # Parameters
-    model_name = 'gin'
     load_model = False
     train_model = True
     log_scale = True
 
-    #datasets_train = ['rand', 'product', 'docking']
-    #datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
-    #train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
-    #paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
-    train_paths = ['../datasets/rand_data.csv']
-    paths_tlimits = ['../datasets/bugg.csv']
+    datasets_train = ['rand', 'product', 'docking']
+    datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
+    train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
+    paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
+    #train_paths = ['../datasets/rand_data.csv']
+    #paths_tlimits = ['../datasets/bugg.csv']
 
 
     learning_rate = 1e-4    # Learning rate for optimizer
     batch_size = 64         # Batch size
-    epochs = 20             # Number of training epochs
+    epochs = 100             # Number of training epochs
     es_patience = 50        # Patience fot early stopping
     
     # Create model
@@ -260,4 +258,6 @@ def main():
     
 
 if __name__ == "__main__":
-    main()
+    model_names = ['gcn', 'gat']
+    for m in model_names:
+        train_eval(m)
