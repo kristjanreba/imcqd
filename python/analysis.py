@@ -81,8 +81,55 @@ def plot_time_dist(path, plot_name):
     plt.clf()
     #plt.show()
 
+def plot_time_dist_models(dataset, path, plot_name, i):
+    Tlimits, times = load_dist(path)
+    # filter out failed Tlimits
+    Tlimits = [Tlimits[i] for i in range(len(times)) if times[i] > 0]
+    times = [times[i] for i in range(len(times)) if times[i] > 0]
+    
+    plt.figure(figsize=(10,5))
+    plt.subplot(211)
+    plt.ylabel('time (s)')
+    plt.plot(Tlimits, times)
+    plt.axvline(x=0.025, color='r')
+    
+    plt.subplot(212)
+    plt.xscale('log')
+    plt.ylabel('time (s)')
+    plt.xlabel('Tlimit')
+    plt.plot(Tlimits, times)
+    plt.axvline(x=0.025, color='r') # default
+
+
+    # get predictions for each model
+    p_xgb = load_predictions('../pred/{}_xgb.csv', dataset)[i]
+    p_gcn = load_predictions('../pred/{}_gcn.csv', dataset)[i]
+    p_gan = load_predictions('../pred/{}_gan.csv', dataset)[i]
+    p_gin = load_predictions('../pred/{}_gin.csv', dataset)[i]
+    p_svr = load_predictions('../pred/{}_svr_wl.csv', dataset)[i]
+
+    plt.axvline(x=p_xgb, color='r') # XGB
+    plt.axvline(x=p_gcn, color='b') # GCN
+    plt.axvline(x=p_gan, color='g') # GAN
+    plt.axvline(x=p_gin, color='k') # GIN
+    plt.axvline(x=p_svr, color='m') # SVR-WL
+
+    plt.savefig('figures/' + plot_name + '.png', dpi=300)
+    plt.clf()
+    #plt.show()
+
+
 if __name__ == "__main__":
     
+    plot_time_dist_models('product', '../datasets/dist_product.csv', plot_name='product_d', i)
+    plot_time_dist_models('dimacs', '../datasets/dist_dimacs.csv', plot_name='dimacs_d', i)
+    plot_time_dist_models('docking', '../datasets/dist_docking.csv', plot_name='docking_d', i)
+    plot_time_dist_models('rand', '../datasets/dist_rand.csv', plot_name='rand_d', i)
+    plot_time_dist_models('protein', '../datasets/dist_protein.csv', plot_name='rand_d', i)
+    plot_time_dist_models('dense', '../datasets/dist_dense.csv', plot_name='rand_d', i)
+
+
+
     #plot_distribution(load_Tlimits(['../datasets/docking_train_tlimits.csv']), plot_name='Tlimit_dist_docking')
     #plot_distribution(load_Tlimits(['../datasets/product_train_tlimits.csv']), plot_name='Tlimit_dist_product')
     #plot_distribution(load_Tlimits(['../datasets/rand_train_tlimits.csv']), plot_name='Tlimit_dist_rand')
@@ -92,7 +139,7 @@ if __name__ == "__main__":
     #plot_time_dist('../datasets/dist_product.csv', plot_name='time_dist_product')
     #plot_time_dist('../datasets/dist_rand.csv', plot_name='time_dist_rand')
     #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_dimacs')
-    plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
+    #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
 
     # train datasets: rand, product, docking
     # test datasets: rand, dense, product, docking, protein, dimacs
@@ -104,6 +151,9 @@ if __name__ == "__main__":
         for dataset in datasets_test:
             compare_test_results(dataset, model_name)
     '''
+
+
+    pass
 
 
 

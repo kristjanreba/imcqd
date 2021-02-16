@@ -247,6 +247,20 @@ def load_Tlimits(paths):
         Tlimits += load_Tlimits_from_csv(p)
     return Tlimits
 
+def load_predictions(path):
+    return load_vector(path)
+
+def load_vector(path):
+    vec = []
+    f = open(path, 'r')
+    lines = f.readlines()
+    n = int(lines[0])
+    for l in lines[1:]:
+        t = float(l)
+        Tlimits.append(t)
+    return Tlimits
+
+
 # Classical ML
 
 def get_features(A):
