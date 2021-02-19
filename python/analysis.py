@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from util import load_results, load_dist, load_Tlimits
+from util import load_results, load_dist, load_Tlimits, load_predictions
 
 eps = 1e-10
 
@@ -81,6 +81,44 @@ def plot_time_dist(path, plot_name):
     plt.clf()
     #plt.show()
 
+def plot_time_dist_models(dataset, path, plot_name, ix):
+    Tlimits, times = load_dist(path)
+    # filter out failed Tlimits
+    Tlimits = [Tlimits[i] for i in range(len(times)) if times[i] > 0]
+    times = [times[i] for i in range(len(times)) if times[i] > 0]
+    
+    plt.figure(figsize=(10,5))
+    #plt.subplot(211)
+    #plt.ylabel('time (s)')
+    #plt.plot(Tlimits, times)
+    #plt.axvline(x=0.025, color='r')
+    
+    #plt.subplot(212)
+    plt.xscale('log')
+    plt.ylabel('time (s)')
+    plt.xlabel('Tlimit')
+    plt.plot(Tlimits, times)
+
+
+    # get predictions for each model
+    p_xgb = load_predictions('../pred/{}_xgb.csv'.format(dataset))[ix]
+    p_gcn = load_predictions('../pred/{}_gcn.csv'.format(dataset))[ix]
+    p_gan = load_predictions('../pred/{}_gat.csv'.format(dataset))[ix]
+    p_gin = load_predictions('../pred/{}_gin.csv'.format(dataset))[ix]
+    p_svr = load_predictions('../pred/{}_svr_wl.csv'.format(dataset))[ix]
+
+    plt.axvline(x=0.025, color='r') # default
+    plt.axvline(x=p_xgb, color='y') # XGB
+    plt.axvline(x=p_gcn, color='b') # GCN
+    plt.axvline(x=p_gan, color='g') # GAN
+    plt.axvline(x=p_gin, color='k') # GIN
+    plt.axvline(x=p_svr, color='m') # SVR-WL
+
+    plt.savefig('figures/' + plot_name + '.png', dpi=300)
+    plt.clf()
+    #plt.show()
+
+
 if __name__ == "__main__":
     
     #plot_distribution(load_Tlimits(['../datasets/docking_train_tlimits.csv']), plot_name='Tlimit_dist_docking')
@@ -92,7 +130,17 @@ if __name__ == "__main__":
     #plot_time_dist('../datasets/dist_product.csv', plot_name='time_dist_product')
     #plot_time_dist('../datasets/dist_rand.csv', plot_name='time_dist_rand')
     #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_dimacs')
-    plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
+    #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
+
+    plot_time_dist_models('rand', '../datasets/rand_dist_20.csv', 'rand_dist_p', 20) # rand
+    plot_time_dist_models('dense', '../datasets/dense_dist_7.csv', 'dense_dist_p', 7) # dense
+    plot_time_dist_models('protein', '../datasets/protein_dist_5.csv', 'protein_dist_p', 5) # protein
+    plot_time_dist_models('product', '../datasets/1_product_dist_0.csv', 'product_dist_p', 0) # product
+    plot_time_dist_models('docking', '../datasets/docking_dist_7.csv', 'docking_dist_p', 7) # docking
+    plot_time_dist_models('dimacs', '../datasets/dimacs_dist_0.csv', 'dimacs_dist_p', 0) # dimacs
+
+
+
 
     # train datasets: rand, product, docking
     # test datasets: rand, dense, product, docking, protein, dimacs
