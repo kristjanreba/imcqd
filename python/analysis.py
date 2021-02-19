@@ -97,7 +97,7 @@ def plot_time_dist_models(dataset, path, plot_name, ix):
     plt.xscale('log')
     plt.ylabel('time (s)')
     plt.xlabel('Tlimit')
-    plt.plot(Tlimits, times)
+    plt.plot(Tlimits, times, label='_nolegend_')
 
 
     # get predictions for each model
@@ -114,9 +114,10 @@ def plot_time_dist_models(dataset, path, plot_name, ix):
     plt.axvline(x=p_gin, color='k') # GIN
     plt.axvline(x=p_svr, color='m') # SVR-WL
 
+    plt.legend(['MCQD', 'XGB', 'GCN', 'GAN', 'GIN', 'SVR-WL'])
+
     plt.savefig('figures/' + plot_name + '.png', dpi=300)
     plt.clf()
-    #plt.show()
 
 
 if __name__ == "__main__":
