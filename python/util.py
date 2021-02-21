@@ -257,9 +257,8 @@ def load_vector(path):
     n = int(lines[0])
     for l in lines[1:]:
         t = float(l)
-        Tlimits.append(t)
-    return Tlimits
-
+        vec.append(t)
+    return vec
 
 # Classical ML
 
