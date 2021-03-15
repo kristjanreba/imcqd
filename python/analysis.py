@@ -18,8 +18,8 @@ def compare_test_results(dataset, model_name):
     print('Time difference: {:.4f}'.format(np.sum(t1-t2)))
     print('Steps difference: {}'.format(np.sum(s1-s2)))
 
-    print('Time ratio: {:.4f}'.format(np.sum(t1)/np.sum(t2)))
-    print('Steps ratio: {:.4f}'.format(np.sum(s1)/np.sum(s2)))
+    print('Sum time ratio: {:.4f}'.format(np.sum(t1)/np.sum(t2)))
+    print('Sum steps ratio: {:.4f}'.format(np.sum(s1)/np.sum(s2)))
 
     print('Avg time ratio: {:.4f}'.format(np.mean(t1/t2)))
     print('Avg steps ratio: {:.4f}'.format(np.mean(s1/s2)))
