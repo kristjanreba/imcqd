@@ -20,4 +20,8 @@ void save_vector(std::string path, std::vector<float> v);
 std::vector<float> make_vector(float beg, float end, float step);
 std::vector<float> make_vector(int size, float val);
 
+void print_vector(std::vector<int> v);
+std::vector<int> make_vector(int beg, int end, int step);
+std::map<int,int> get_shuffled_vertices(int n);
+
 #endif
