@@ -5,9 +5,11 @@
 #include <vector>
 #include <string>
 #include <random>
+#include <map>
 
 #include "helper/array2d.hpp"
 #include "graph.hpp"
+
 
 void array2d_to_adj_list(Array2d<bool> g, Graph *g_new) {
     for (int i = 0; i < g.get_szi(); i++) {
@@ -33,6 +35,10 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
     std::ifstream f(path);
     int n; // number of graphs
     f >> n;
+
+    // shuffle vertices
+    std::map<int, int> d = get_shuffled_vertices(int n);
+
     for (int i = 0; i < n; i++) {
         int n_vertices, m; // number of vertices in graph
         f >> n_vertices >> m;
@@ -40,7 +46,7 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
         for (int j = 0; j < m; j++) {
             int u, v;
             f >> u >> v;
-            g.add_edge(u, v);
+            g.add_edge(d.find(u)->second, d.find(v)->second);
         }
         graphs->push_back(g);
         float Tlimit;
@@ -84,6 +90,13 @@ void print_array2d(Array2d<bool> a) {
         }
         std:cout << std::endl;
     }
+}
+
+void print_vector(std::vector<int> v) {
+    for (int i = 0; i < v.size(); i++) {
+        std::cout << v[i] << " ";
+    }
+    std:cout << std::endl;
 }
 
 // -------------- Saving data ------------------
@@ -136,8 +149,8 @@ void save_vector(std::string path, std::vector<float> v) {
 
 // -------------- Vectors ------------------
 
-std::vector<float> make_vector(float beg, float end, float step) {
-    std::vector<float> vec;
+std::vector<int> make_vector(int beg, int end, int step) {
+    std::vector<int> vec;
     vec.reserve((end - beg) / step + 1);
     while (beg <= end) {
         vec.push_back(beg);
@@ -146,10 +159,31 @@ std::vector<float> make_vector(float beg, float end, float step) {
     return vec;
 }
 
+
+
 std::vector<float> make_vector(int size, float val) {
     std::vector<float> vec;
     for (int i = 0; i < size; i++)
         vec.push_back(val);
     return vec;
 }
+
+
+// create shuffled dict
+std::map<int, int> get_shuffled_vertices(int n) {
+    std::map<int, int> d;
+    std::vector<int> vertices = make_vector(0, n, 1);
+    print_vector(vertices);
+    auto rd = std::random_device {}; 
+    auto rng = std::default_random_engine { rd() };
+    std::shuffle(std::begin(vertices), std::end(vertices), rng);
+    print_vector(vertices);
+    for (int i = 0; i <= n; i++) {
+        d.insert({i, (int) vertices[i]});
+    }
+    return d;
+}
+
+
+
 

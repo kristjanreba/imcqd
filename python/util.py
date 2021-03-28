@@ -28,6 +28,64 @@ def load_graphs_from_folder(path):
     Tlimits = [0] * len(graphs)
     return graphs, Tlimits
 
+def load_graphs_from_folder_weighted(path):
+    '''Read all graphs in folder and return them in a list as well as Tlimit values
+
+    Returns:
+        A: list of adjacency matrices in cms_matrix format
+        Tlimits: list of float values
+    '''
+    graphs = []
+    ws = []
+    f = open(path, 'r')
+    for filename in os.listdir(directory):
+        if filename.endswith('.txt'):
+            print('Loading from file:', filename)
+            g, w = load_dimacs_into_sparse_matrix_weighted(os.path.join(directory, filename))
+            graphs.append(g)
+            ws.append(w)
+    Tlimits = [0] * len(graphs)
+    return graphs, ws, Tlimits
+
+def load_graphs_from_csv_weighted(path):
+    '''
+    Read file that contains graphs and
+    best Tlimit value for each graph.
+
+    return: list of adjacency matrices and a list of Tlimit values
+    '''
+    graphs = []
+    Tlimits = []
+    ws = []
+    f = open(path, 'r')
+    lines = f.readlines()
+    counter = 0
+    n = int(lines[counter])
+    counter += 1
+    for i in range(n):
+        n_vertices, n_edges = lines[counter].split(" ")
+        n_vertices, n_edges = int(n_vertices), int(n_edges)
+        counter += 1
+
+        for j in range(n_vertices):
+            w = lines[counter].split(" ")
+            ws.append(float(w))
+            counter += 1
+
+        #g = dok_matrix((n_vertices, n_vertices))
+        g = np.zeros((n_vertices, n_vertices), dtype=np.int8)
+        for j in range(n_edges):
+            u, v = lines[counter].split(" ")
+            u, v = int(u), int(v)
+            g[u,v] = 1
+            counter += 1
+        graphs.append(g)
+        Tlimits.append(float(lines[counter]))
+        counter += 1
+    f.close()
+    Tlimits = np.array(Tlimits).reshape(-1,1)
+    return graphs, ws, Tlimits
+
 def load_graphs_from_csv(path):
     '''
     Read file that contains graphs and
@@ -154,6 +212,89 @@ def load_and_preprocess_test_data(path):
     A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
     return A_list, X_list
 
+def split_data_weighted(X, w, y, validation_size=0.2, test_size=0.1):
+    train_size = 1. - (validation_size + test_size)
+    X_train, X_test, w_train, w_test, y_train, y_test = train_test_split(X, w, y, test_size=1-train_size, shuffle=True)
+    X_val, X_test, w_val, w_test, y_val, y_test = train_test_split(X_test, w_test, y_test, test_size=test_size/(test_size+validation_size), shuffle=False)
+    return X_train, X_val, X_test, w_train, w_val, w_test, np.array(y_train), np.array(y_val), np.array(y_test)
+
+def load_data_weighted(list_of_paths):
+    """ Load data from the paths contained in list_of_paths
+    Returns:
+        A: list of graphs in cms_matrix format
+    """
+    A = []
+    for p in list_of_paths:
+        if p.endswith('.csv'): 
+            gs, _ = load_graphs_from_csv_weighted(p)
+            A += gs
+        else:
+            gs, _ = load_graphs_from_folder_weighted(p)
+            A += gs
+        print('Loaded graphs from', p)
+    return A
+
+def load_and_preprocess_train_data_weighted(paths_graphs, paths_tlimits, val_size=0.1, test_size=0.1):
+    A, w = load_data_weighted(paths_graphs) # A is a list of graphs
+    y = load_Tlimits(paths_tlimits) #y is a list of float values
+    print('Number of graphs in train dataset:', len(A))
+    print('Number of Tlimit values:', len(y))
+    #y += epsilon
+    A = [normalized_adjacency(a) for a in A]
+    A = cast_list_to_float32(A)
+    A = [csr_matrix(a) for a in A]
+    
+    y = cast_list_to_float32(y)
+    A_train, A_val, A_test, w_train, w_val, w_test, y_train, y_val, y_test = split_data(A, w, y, validation_size=val_size, test_size=test_size)
+    print("Train size:", len(A_train))
+    print("Val_size:", len(A_val))
+    print("Test_size:", len(A_test))
+
+    w_train = cast_list_to_float32(w_train)
+    w_val = cast_list_to_float32(w_val)
+    w_test = cast_list_to_float32(w_test)
+
+    F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
+    n_out = 1 # regression requires 1 output value (Tlimit)
+
+    return A_train, A_val, A_test, w_train, w_val, w_test, y_train, y_val, y_test, F, n_out
+
+def load_and_preprocess_test_data_weighted(path):
+    A_list, w_list = load_data_weighted([path]) # A is a list of graphs, w is a list of float values
+    A_list = cast_list_to_float32(A_list)
+    w_list = cast_list_to_float32(w_list)
+    A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
+    return A_list, X_list
+
+def load_dimacs_into_sparse_matrix_weighted(path):
+    f = open(path, 'r')
+    lines = f.readlines()
+    g = None
+    w = []
+    for l in lines:
+        if l[0] == 'c': continue
+        elif l[0] == 'p':
+            retval = l.split()
+            n_vertices = None
+            if len(retval) == 4: _, _, n_vertices, _ = retval
+            else: _, _, n_vertices = retval
+            n_vertices = int(n_vertices)
+            g = dok_matrix((n_vertices, n_vertices), dtype=np.int8)
+            #g = np.zeros((n_vertices, n_vertices))
+        elif l[0] == 'e':
+            _, u, v = l.split(" ")
+            u, v = int(u)-1, int(v)-1 # substract one to make name of vertices start at 0
+            g[u,v] = 1
+        elif l[0] == 'v':
+            _, _, w = l.split()
+            w.append(float(w))
+        else:
+            print('Unknown line in dimacs graph:', l)
+            print('Skipping this line.')
+            continue
+    f.close()
+    return g
+
 def load_dimacs_into_sparse_matrix(path):
     f = open(path, 'r')
     lines = f.readlines()
@@ -201,6 +342,51 @@ def save_graphs_to_csv(path_in, path_out, file_tipe='clq'):
         Tlimits.append(0)
         i += 1
     save_data(save_file, graphs, Tlimits)
+
+def save_graphs_to_csv_weighted(path_in, path_out, file_tipe='clq'):
+    print('saving graphs from {} into csv file'.format(path_in))
+    directory_in_str = path_in
+    save_file = path_out
+    pathlist = Path(directory_in_str).rglob('*.' + file_tipe)
+    pathlist = sorted(pathlist)
+    print('number of graphs:', len(pathlist))
+    graphs = []
+    ws = []
+    Tlimits = []
+    i = 0
+    for path in pathlist:
+        path_in_str = str(path)
+        print(i, path_in_str)
+        g, w = load_dimacs_into_sparse_matrix_weighted(path_in_str)
+        graphs.append(g)
+        ws.append(ws)
+        Tlimits.append(0)
+        i += 1
+    save_data_weighted(save_file, graphs, ws, Tlimits)
+
+def save_data_weighted(path, graphs, ws, Tlimits):
+    '''
+    graphs -> list of graps in sparse matrix format
+    Tlimits -> list of float values for each graph
+
+    function creates a save file of the format that is readable by c++ part
+    of this project.
+    '''
+    f = open(path, 'w')
+    n = len(graphs)
+    f.write(str(n) + "\n")
+    for i in range(n):
+        g = graphs[i]
+        w = ws[i]
+        n_vertices = g.shape[0]
+        n_edges = np.sum(g)
+        f.write("{} {}\n".format(n_vertices, int(n_edges)))
+        for j in w: f.write("{}\n".format(j))
+        cx = coo_matrix(g)
+        for r,c,v in zip(cx.row, cx.col, cx.data):
+            f.write("{} {}\n".format(r, c))
+        f.write(str(Tlimits[i]) + "\n")
+    f.close()
 
 def save_predictions(path, pred):
     save_vector(path, pred)
@@ -297,11 +483,12 @@ def load_basic_data_from_csv(path):
 
 if __name__ == "__main__":
 
+    save_graphs_to_csv_weighted('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
+
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/product_graphs/train/', '../datasets/product_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/product_graphs/test/', '../datasets/product_test.csv', file_tipe='txt')
-
     
     #create_basic_data('../datasets/rand_train.csv', '../datasets/rand_train_features.csv')
     #create_basic_data('../datasets/rand_test.csv', '../datasets/rand_test_features.csv')

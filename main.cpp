@@ -235,18 +235,39 @@ void test_model_on_dataset(std::string dataset, std::string model_name) {
 }
 
 int main()
-{   
+{
+    // Novi eksperimenti 26.3.2021
+    /*
+    int n = 5;
+    std::map<int, int> d = get_shuffled_vertices(n);
+    std::cout << "Test 3" << std::endl;
+    for (auto itr = d.find(3); itr != d.end(); itr++) {
+        cout << itr->first << '\t' << itr->second << '\n';
+    }
+    */
+
+    
+
+
+
+    // -----------------------------
+
+
+
+    // Stari eksperimenti
     //generate_train_data_from_csv("datasets/docking_train.csv", "datasets/docking_train_tlimits.csv");
     //generate_train_data_from_csv("datasets/product_train.csv", "datasets/product_train_tlimits.csv");
 
-    std::vector<std::string> test_datasets = {"protein", "product", "docking", "rand", "dense"};
+    //std::vector<std::string> test_datasets = {"protein", "product", "docking", "rand", "dense"};
     //std::vector<std::string> models = {"default", "gcn", "xgb", "svr", "gbr"};
+    /*
     std::vector<std::string> models = {"gcn", "gin", "gat"};
     for (int i = 0; i < models.size(); i++) {
         for (int j = 0; j < test_datasets.size(); j++) {
             test_model_on_dataset(test_datasets[j], models[i]);
         }
     }
+    */
 
     
 
