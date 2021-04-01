@@ -37,7 +37,7 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
     f >> n;
 
     // shuffle vertices
-    std::map<int, int> d = get_shuffled_vertices(int n);
+    std::map<int, int> d = get_shuffled_vertices(n);
 
     for (int i = 0; i < n; i++) {
         int n_vertices, m; // number of vertices in graph
@@ -147,7 +147,7 @@ void save_vector(std::string path, std::vector<float> v) {
     f.close();
 }
 
-// -------------- Vectors ------------------
+// vectors
 
 std::vector<int> make_vector(int beg, int end, int step) {
     std::vector<int> vec;
@@ -159,15 +159,12 @@ std::vector<int> make_vector(int beg, int end, int step) {
     return vec;
 }
 
-
-
 std::vector<float> make_vector(int size, float val) {
     std::vector<float> vec;
     for (int i = 0; i < size; i++)
         vec.push_back(val);
     return vec;
 }
-
 
 // create shuffled dict
 std::map<int, int> get_shuffled_vertices(int n) {
@@ -185,5 +182,40 @@ std::map<int, int> get_shuffled_vertices(int n) {
 }
 
 
+// weighted graphs
+
+void load_data_weighted(std::string path, std::vector<Graph> *graphs, std::vector< std::vector<float> > *W, std::vector<float> *Tlimits) {
+    std::ifstream f(path);
+    int n; // number of graphs
+    f >> n;
+
+    // shuffle vertices
+    //std::map<int, int> d = get_shuffled_vertices(n);
+
+    for (int i = 0; i < n; i++) {
+        int n_vertices, m; // number of vertices in graph
+        f >> n_vertices >> m;
+
+        std::vector<float> ws;
+        for (int k = 0; k < n_vertices; k++) {
+            int w;
+            f >> w;
+            ws.push_back(w);
+        }
+        W->push_back(ws);
+
+        Graph g(n_vertices);
+        for (int j = 0; j < m; j++) {
+            int u, v;
+            f >> u >> v;
+            g.add_edge(d.find(u)->second, d.find(v)->second);
+        }
+        graphs->push_back(g);
+        float Tlimit;
+        f >> Tlimit;
+        Tlimits->push_back(Tlimit);
+    }
+    f.close();
+}
 
 

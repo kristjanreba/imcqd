@@ -270,7 +270,7 @@ def load_dimacs_into_sparse_matrix_weighted(path):
     f = open(path, 'r')
     lines = f.readlines()
     g = None
-    w = []
+    ws = []
     for l in lines:
         if l[0] == 'c': continue
         elif l[0] == 'p':
@@ -286,14 +286,14 @@ def load_dimacs_into_sparse_matrix_weighted(path):
             u, v = int(u)-1, int(v)-1 # substract one to make name of vertices start at 0
             g[u,v] = 1
         elif l[0] == 'v':
-            _, _, w = l.split()
-            w.append(float(w))
+            _, _, w = l.split(" ")
+            ws.append(float(w))
         else:
             print('Unknown line in dimacs graph:', l)
             print('Skipping this line.')
             continue
     f.close()
-    return g
+    return g, ws
 
 def load_dimacs_into_sparse_matrix(path):
     f = open(path, 'r')
@@ -359,7 +359,7 @@ def save_graphs_to_csv_weighted(path_in, path_out, file_tipe='clq'):
         print(i, path_in_str)
         g, w = load_dimacs_into_sparse_matrix_weighted(path_in_str)
         graphs.append(g)
-        ws.append(ws)
+        ws.append(w)
         Tlimits.append(0)
         i += 1
     save_data_weighted(save_file, graphs, ws, Tlimits)
@@ -483,7 +483,7 @@ def load_basic_data_from_csv(path):
 
 if __name__ == "__main__":
 
-    save_graphs_to_csv_weighted('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
+    save_graphs_to_csv_weighted('../datasets/docking_graphs/train/', '../datasets/dockingw_train.csv', file_tipe='txt')
 
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')

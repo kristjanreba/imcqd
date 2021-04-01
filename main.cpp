@@ -234,8 +234,50 @@ void test_model_on_dataset(std::string dataset, std::string model_name) {
     save_results(path_results_pred, steps_pred, times_pred);
 }
 
+// weighted
+
+void get_time_MCQDW(Array2d<bool> g, std::vector<double> ws, float Tlimit, int *steps, float *time, int max_steps, float max_time) {
+    Benchmark benchmark;
+    MaxClique::SearchType search = MaxClique::MCQDW;
+    MaxClique::HowToSort sort = MaxClique::DESC_DEGREE_DESC_ENERGY;
+    int n_cliques = 100;
+    MaxClique mc(g, ws, sort, n_cliques, max_steps, Tlimit, max_time);
+    benchmark.reset();
+    MaxClique::Clique c = mc.maximum_clique(search);
+    *time = benchmark.seconds_from_start();
+    *steps = mc.steps();
+    //std::cout << *time << std::endl;
+    if (fabs(*time - max_time) < 0.1) {
+        *time = -1;
+        //std::cout << "set to -1" << std::endl;
+    }
+}
+
+
 int main()
-{
+{   
+
+    int i = 0;
+    std::vector<Graph> graphs;
+    std::vector< std::vector<float> > W;
+    std::vector<float> _Tlimits;
+    load_data("datasets/dockingw_data.csv", &graphs, &W, &_Tlimits); // load graphs
+    std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
+    std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
+    Array2d<bool> g_new(graphs[i].num_nodes);
+    adj_list_to_array2d(graphs[i], &g_new);
+    
+
+    for (int i = 0; i < v.size(); i++) {
+        std::vector<float> u = v[i];
+        for (int j = 0; j < u.size(); j++) {
+            std::cout << u[j] << " ";
+        }
+        std:cout << std::endl;
+    }
+    std:cout << std::endl;
+
+
     // Novi eksperimenti 26.3.2021
     /*
     int n = 5;
@@ -276,7 +318,7 @@ int main()
 
 
     /*
-    int i = 2;
+    int i = 0;
     std::vector<Graph> graphs;
     std::vector<float> _Tlimits;
     load_data("datasets/sparse_data.csv", &graphs, &_Tlimits); // load graphs

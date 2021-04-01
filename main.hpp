@@ -20,6 +20,10 @@ void generate_train_data_from_csv(std::string, std::string);
 void get_times(std::vector<Graph>, std::vector<int> *, std::vector<float> *);
 void get_times(std::vector<Graph>, std::vector<float>, std::vector<int> *, std::vector<float> *);
 
+// weighted
+
+
+
 int main();
 
 
