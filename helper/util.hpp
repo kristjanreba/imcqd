@@ -24,6 +24,6 @@ void print_vector(std::vector<int> v);
 std::vector<int> make_vector(int beg, int end, int step);
 std::map<int,int> get_shuffled_vertices(int n);
 
-void load_data_weighted(std::string path, std::vector<Graph> *graphs, std::vector< std::vector<float> > *W, std::vector<float> *Tlimits);
+void load_data_weighted(std::string path, std::vector<Graph> *graphs, std::vector< std::vector<double> > *W, std::vector<float> *Tlimits, bool shuffle);
 
 #endif

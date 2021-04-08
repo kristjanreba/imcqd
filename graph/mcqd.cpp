@@ -32,8 +32,8 @@ MaxClique::MaxClique(const Array2d<bool> &conn, const HowToSort h,
  */
 MaxClique::MaxClique(const Array2d<bool> &conn, const vector<double> &energy,
                      const HowToSort h, const int n_cliques,
-                     const int max_steps, const float tt)
-    : MaxClique(conn, h, n_cliques, max_steps, tt) {
+                     const int max_steps, const float tt, const float max_time)
+    : MaxClique(conn, h, n_cliques, max_steps, tt, max_time) {
   __energy = energy;
 }
 
@@ -328,7 +328,7 @@ void MaxClique::expand_mcqd(Vertices R) {
 }
 
 void MaxClique::expand_mcqw(Vertices R) {
-  if (__max_steps != -1 && pk > __max_steps)
+  if ((__max_steps != -1 && pk > __max_steps) || (((clock()-t) / CLOCKS_PER_SEC) > __max_time && __max_time != -1))
     return;
   while (R.size()) {
     if (Q.get_energy() + R.end().get_energy() < QMAX.get_energy()) {
@@ -354,7 +354,7 @@ void MaxClique::expand_mcqw(Vertices R) {
 }
 
 void MaxClique::expand_mcqdw(Vertices R) {
-  if (__max_steps != -1 && pk > __max_steps)
+  if ((__max_steps != -1 && pk > __max_steps) || (((clock()-t) / CLOCKS_PER_SEC) > __max_time && __max_time != -1))
     return;
   S[level].set_i1(S[level].get_i1() + S[level - 1].get_i1() -
                   S[level].get_i2());

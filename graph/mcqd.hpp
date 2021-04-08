@@ -248,7 +248,7 @@ public:
             const int = 100, const int = -1, const float = 0.025, const float = 5.0);
   MaxClique(const Array2d<bool> &, const vector<double> &,
             const HowToSort = DESC_DEGREE, const int = 100, const int = -1,
-            const float = 0.025);
+            const float = 0.025, const float = 5.0);
   ~MaxClique() {
     if (C)
       delete[] C;

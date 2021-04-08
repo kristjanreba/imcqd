@@ -166,16 +166,23 @@ std::vector<float> make_vector(int size, float val) {
     return vec;
 }
 
+std::vector<double> make_vector(int size, double val) {
+    std::vector<double> vec;
+    for (int i = 0; i < size; i++)
+        vec.push_back(val);
+    return vec;
+}
+
 // create shuffled dict
 std::map<int, int> get_shuffled_vertices(int n) {
     std::map<int, int> d;
-    std::vector<int> vertices = make_vector(0, n, 1);
-    print_vector(vertices);
+    std::vector<int> vertices = make_vector(0, n-1, 1);
+    //print_vector(vertices);
     auto rd = std::random_device {}; 
     auto rng = std::default_random_engine { rd() };
     std::shuffle(std::begin(vertices), std::end(vertices), rng);
-    print_vector(vertices);
-    for (int i = 0; i <= n; i++) {
+    //print_vector(vertices);
+    for (int i = 0; i < n; i++) {
         d.insert({i, (int) vertices[i]});
     }
     return d;
@@ -184,23 +191,24 @@ std::map<int, int> get_shuffled_vertices(int n) {
 
 // weighted graphs
 
-void load_data_weighted(std::string path, std::vector<Graph> *graphs, std::vector< std::vector<float> > *W, std::vector<float> *Tlimits) {
+void load_data_weighted(std::string path, std::vector<Graph> *graphs, std::vector< std::vector<double> > *W, std::vector<float> *Tlimits, bool shuffle) {
     std::ifstream f(path);
     int n; // number of graphs
     f >> n;
-
-    // shuffle vertices
-    //std::map<int, int> d = get_shuffled_vertices(n);
-
+    
     for (int i = 0; i < n; i++) {
         int n_vertices, m; // number of vertices in graph
         f >> n_vertices >> m;
 
-        std::vector<float> ws;
+        // shuffle vertices
+        std::map<int, int> d;
+        if (shuffle) { d = get_shuffled_vertices(n_vertices); }
+
+        std::vector<double> ws = make_vector(n_vertices, 0.0);
         for (int k = 0; k < n_vertices; k++) {
-            int w;
+            double w;
             f >> w;
-            ws.push_back(w);
+            ws[d.find(k)->second] = w;
         }
         W->push_back(ws);
 
@@ -208,7 +216,12 @@ void load_data_weighted(std::string path, std::vector<Graph> *graphs, std::vecto
         for (int j = 0; j < m; j++) {
             int u, v;
             f >> u >> v;
-            g.add_edge(d.find(u)->second, d.find(v)->second);
+            //std::cout << u << " " << v << " " << n_vertices << std::endl;
+            if (shuffle) {
+                g.add_edge(d.find(u)->second, d.find(v)->second);
+            } else {
+                g.add_edge(u, v);
+            }
         }
         graphs->push_back(g);
         float Tlimit;

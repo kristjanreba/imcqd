@@ -253,30 +253,82 @@ void get_time_MCQDW(Array2d<bool> g, std::vector<double> ws, float Tlimit, int *
     }
 }
 
+float get_best_Tlimit_weighted(Array2d<bool> g, std::vector<double> ws) {
+    float Tlimits[] = {0.00001, 0.0001, 0.001, 0.002, 0.0025, 0.005, 0.01, 0.02, 0.025, 0.03, 0.035, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0};
+    float best_Tlimit = -1;
+    float best_time = -1;
+    for (int j = 0; j < sizeof(Tlimits)/sizeof(Tlimits[0]); j++) { // test multiple Tlimit values
+        float time;
+        int steps;
+        int max_steps = -1;
+        float max_time = 5.0;
+        get_time_MCQDW(g, ws, Tlimits[j], &steps, &time, max_steps, max_time);
+        if (fabs(time - max_time) < 0.1) continue;
+        if (time < best_time || best_time == -1) {
+            best_time = time;
+            best_Tlimit = Tlimits[j];
+        }
+    }
+    return best_Tlimit;
+}
+
+void generate_train_data_from_csv_weighted(std::string path_in, std::string path_out) {
+    std::vector<Graph> graphs;
+    std::vector<float> Tlimits;
+    std::vector< std::vector<double> > W;
+    std::vector<float> best_Tlimits;
+    std::cout << "Loading data from " << path_in << std::endl;
+    load_data_weighted(path_in, &graphs, &W, &Tlimits, true);
+    std::cout << "Test1" << std::endl;
+    int n = graphs.size();
+    std::cout << "n\t" << "ws.size" << std::endl;
+    for (int i = 0; i < n; i++) {
+        std::vector<double> ws = W[i];
+        std::cout << i << "\t" << ws.size() << std::endl;
+        Array2d<bool> g_new(graphs[i].num_nodes);
+        adj_list_to_array2d(graphs[i], &g_new);
+        float tlimit = get_best_Tlimit_weighted(g_new, ws);
+        best_Tlimits.push_back(tlimit);
+    }
+    save_vector(path_out, best_Tlimits);
+}
+
 
 int main()
 {   
 
+    // Weighted grafi
+    //generate_train_data_from_csv_weighted("datasets/dockingw_train.csv", "datasets/dockingw_train_tlimits.csv");
+
+    /*
+    std::vector<std::string> models = {"default", "gcn", "gin", "gat"};
+    for (int i = 0; i < models.size(); i++) {
+        test_model_on_dataset_weighted("dockingw", models[i]);
+    }
+    */
+
+
+    /*
     int i = 0;
     std::vector<Graph> graphs;
-    std::vector< std::vector<float> > W;
+    std::vector< std::vector<double> > W;
     std::vector<float> _Tlimits;
-    load_data("datasets/dockingw_data.csv", &graphs, &W, &_Tlimits); // load graphs
+    load_data_weighted("datasets/dockingw_train.csv", &graphs, &W, &_Tlimits, true); // load graphs
     std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
     std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
     Array2d<bool> g_new(graphs[i].num_nodes);
     adj_list_to_array2d(graphs[i], &g_new);
-    
 
-    for (int i = 0; i < v.size(); i++) {
-        std::vector<float> u = v[i];
+    for (int i = 0; i < W.size(); i++) {
+        std::vector<double> u = W[i];
         for (int j = 0; j < u.size(); j++) {
             std::cout << u[j] << " ";
         }
-        std:cout << std::endl;
+        std::cout << std::endl;
     }
     std:cout << std::endl;
-
+    */
+    
 
     // Novi eksperimenti 26.3.2021
     /*
