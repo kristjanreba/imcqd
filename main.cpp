@@ -293,6 +293,47 @@ void generate_train_data_from_csv_weighted(std::string path_in, std::string path
     save_vector(path_out, best_Tlimits);
 }
 
+void get_times_weighted(std::vector<Graph> graphs, std::vector< std::vector<double> > W, std::vector<float> predictions, std::vector<int> *steps, std::vector<float> *times) {
+    if (graphs.size() != predictions.size()) {
+        std::cout << "graphs and predictions are not the same size" << std::endl;
+        return;
+    }
+    int n = graphs.size();
+    //int n = 5;
+    for (int i = 0; i < n; i++) {
+        std::cout << i << std::endl;
+        Array2d<bool> g_new(graphs[i].num_nodes);
+        adj_list_to_array2d(graphs[i], &g_new);
+        float time;
+        int s;
+        int max_steps = -1;
+        float max_time = 2000.0;
+        get_time_MCQDW(g_new, W[i], predictions[i], &s, &time, max_steps, max_time);
+        times->push_back(time);
+        steps->push_back(s);
+    }
+}
+
+void test_model_on_dataset_weighted(std::string dataset, std::string model_name) {
+    std::string path_predictions = "pred/" + dataset + "_" + model_name + ".csv";
+    std::string path_results_pred = "results/" + dataset + "_" + model_name + ".csv";
+    std::string path_data = "datasets/" + dataset + "_test.csv";
+
+    std::vector<float> predictions;
+    std::vector<float> times_pred;
+    std::vector<int> steps_pred;
+    std::vector<Graph> graphs;
+    std::vector< std::vector<double> > W;
+    std::vector<float> _Tlimits; // we don't need this actually but the function requires this argumet
+
+    std::cout << "Testing " << model_name << " on " << dataset << " data" << std::endl;
+    load_data_weighted(path_data, &graphs, &W, &_Tlimits, false); // load graphs
+    if (model_name.compare("default") == 0) predictions = make_vector(graphs.size(), TLIMIT_DEFAULT);
+    else load_predictions(path_predictions, &predictions); // load predictions
+    get_times_weighted(graphs, W, predictions, &steps_pred, &times_pred);
+    save_results(path_results_pred, steps_pred, times_pred);
+}
+
 
 int main()
 {   
@@ -300,12 +341,12 @@ int main()
     // Weighted grafi
     //generate_train_data_from_csv_weighted("datasets/dockingw_train.csv", "datasets/dockingw_train_tlimits.csv");
 
-    /*
-    std::vector<std::string> models = {"default", "gcn", "gin", "gat"};
+    
+    std::vector<std::string> models = {"default", "gat"};
     for (int i = 0; i < models.size(); i++) {
         test_model_on_dataset_weighted("dockingw", models[i]);
     }
-    */
+    
 
 
     /*
