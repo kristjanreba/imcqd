@@ -121,12 +121,14 @@ def train_eval(model_name):
         return np.mean(output, 0)
 
     # Parameters
-    load_model = False
+    load_model = True
     train_model = True
     log_scale = True
 
-    datasets_train = ['rand', 'product', 'docking']
-    datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
+    #datasets_train = ['rand', 'product', 'docking']
+    #datasets_test = ['rand', 'product', 'docking', 'protein', 'dimacs', 'dense']
+    datasets_train = ['dockingw']
+    datasets_test = ['dockingw']
     train_paths = ['../datasets/' + d + '_train.csv' for d in datasets_train]
     paths_tlimits = ['../datasets/' + d + '_train_tlimits.csv' for d in datasets_train]
     #train_paths = ['../datasets/rand_data.csv']
@@ -134,9 +136,9 @@ def train_eval(model_name):
 
 
     learning_rate = 1e-4    # Learning rate for optimizer
-    batch_size = 64         # Batch size
-    epochs = 100             # Number of training epochs
-    es_patience = 50        # Patience fot early stopping
+    batch_size = 2         # Batch size
+    epochs = 10             # Number of training epochs
+    es_patience = 10        # Patience fot early stopping
     
     # Create model
     model = create_model(model_name, load_model)
@@ -149,13 +151,12 @@ def train_eval(model_name):
 
         # Load and prepare train data
         print('Loading and preprocessing data...')
-        A_train, A_val, A_test,\
-        X_train, X_val, X_test,\
-        y_train, y_val, y_test,\
-        F, n_out = load_and_preprocess_train_data_weighted(train_paths, paths_tlimits, val_size=0.05, test_size=0.01)
+        A_train, A_test,\
+        X_train, X_test,\
+        y_train, y_test,\
+        F, n_out = load_and_preprocess_train_data_weighted(train_paths, paths_tlimits, test_size=0.1)
         if log_scale:
             y_train = np.log10(y_train + epsilon)
-            y_val = np.log10(y_val + epsilon)
             y_test = np.log10(y_test + epsilon)
 
 
@@ -197,39 +198,18 @@ def train_eval(model_name):
                                 batch_size=batch_size, epochs=epochs)
         for b in batches:
             current_batch += 1
-
             X_, A_, I_ = to_disjoint(*b[:-1])
             A_ = ops.sp_matrix_to_sp_tensor(A_)
             y_ = b[-1]
             outs = train_step(X_, A_, I_, y_)
-            model_loss += outs[0]
-            model_acc += outs[1]
             if current_batch == batches_in_epoch:
                 epoch += 1
-                model_loss /= batches_in_epoch
-                model_acc /= batches_in_epoch
-                # Compute validation loss and accuracy
-                val_loss, val_acc = evaluate(A_val, X_val, y_val, [loss_fn, acc_fn], batch_size=batch_size)
-                print('Ep. {} - Loss: {:.6f} - RMSE: {:.4f} - Val loss: {:.6f} - Val RMSE: {:.4f}'
-                    .format(epoch, model_loss, model_acc, val_loss, val_acc))
-                # Check if loss improved for early stopping
-                if val_loss < best_val_loss:
-                    best_val_loss = val_loss
-                    patience = es_patience
-                    print('New best val_loss {:.6f}'.format(val_loss))
-                    best_weights = model.get_weights()
-                else:
-                    patience -= 1
-                    if patience == 0:
-                        print('Early stopping (best val_loss: {})'.format(best_val_loss))
-                        break
-                model_loss = 0
-                model_acc = 0
-                current_batch = 0
+                print('Epoch:', epoch)
+                best_weights = model.get_weights()
 
         print('Saving model to file')
         model.set_weights(best_weights)
-        model.save_weights('saved_models/' + model_name + '.h5')
+        model.save_weights('saved_models/' + model_name + 'w.h5')
 
         # Evaluate model
         print('Testing model')
@@ -258,6 +238,6 @@ def train_eval(model_name):
     
 
 if __name__ == "__main__":
-    model_names = ['gcn', 'gat']
+    model_names = ['gat']
     for m in model_names:
         train_eval(m)

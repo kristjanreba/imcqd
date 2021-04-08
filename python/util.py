@@ -52,11 +52,11 @@ def load_graphs_from_csv_weighted(path):
     Read file that contains graphs and
     best Tlimit value for each graph.
 
-    return: list of adjacency matrices and a list of Tlimit values
+    return: list of adjacency matrices, weights for each vertex and a list of Tlimit values
     '''
     graphs = []
     Tlimits = []
-    ws = []
+    W = []
     f = open(path, 'r')
     lines = f.readlines()
     counter = 0
@@ -66,11 +66,12 @@ def load_graphs_from_csv_weighted(path):
         n_vertices, n_edges = lines[counter].split(" ")
         n_vertices, n_edges = int(n_vertices), int(n_edges)
         counter += 1
-
+        ws = []
         for j in range(n_vertices):
-            w = lines[counter].split(" ")
+            w = lines[counter]
             ws.append(float(w))
             counter += 1
+        W.append(ws)
 
         #g = dok_matrix((n_vertices, n_vertices))
         g = np.zeros((n_vertices, n_vertices), dtype=np.int8)
@@ -84,7 +85,7 @@ def load_graphs_from_csv_weighted(path):
         counter += 1
     f.close()
     Tlimits = np.array(Tlimits).reshape(-1,1)
-    return graphs, ws, Tlimits
+    return graphs, W, Tlimits
 
 def load_graphs_from_csv(path):
     '''
@@ -212,11 +213,9 @@ def load_and_preprocess_test_data(path):
     A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
     return A_list, X_list
 
-def split_data_weighted(X, w, y, validation_size=0.2, test_size=0.1):
-    train_size = 1. - (validation_size + test_size)
-    X_train, X_test, w_train, w_test, y_train, y_test = train_test_split(X, w, y, test_size=1-train_size, shuffle=True)
-    X_val, X_test, w_val, w_test, y_val, y_test = train_test_split(X_test, w_test, y_test, test_size=test_size/(test_size+validation_size), shuffle=False)
-    return X_train, X_val, X_test, w_train, w_val, w_test, np.array(y_train), np.array(y_val), np.array(y_test)
+def split_data_weighted(X, w, y, test_size=0.1):
+    X_train, X_test, w_train, w_test, y_train, y_test = train_test_split(X, w, y, test_size=test_size, shuffle=True)
+    return X_train, X_test, w_train, w_test, np.array(y_train), np.array(y_test)
 
 def load_data_weighted(list_of_paths):
     """ Load data from the paths contained in list_of_paths
@@ -224,18 +223,19 @@ def load_data_weighted(list_of_paths):
         A: list of graphs in cms_matrix format
     """
     A = []
+    Wacc = []
     for p in list_of_paths:
-        if p.endswith('.csv'): 
-            gs, _ = load_graphs_from_csv_weighted(p)
-            A += gs
-        else:
-            gs, _ = load_graphs_from_folder_weighted(p)
-            A += gs
+        gs, W, _ = load_graphs_from_csv_weighted(p)
+        A += gs
+        Wacc += W
         print('Loaded graphs from', p)
-    return A
+    return A, Wacc
 
-def load_and_preprocess_train_data_weighted(paths_graphs, paths_tlimits, val_size=0.1, test_size=0.1):
-    A, w = load_data_weighted(paths_graphs) # A is a list of graphs
+def cast_to_numpy(X):
+    return [np.array(x).reshape((-1,1)) for x in X]
+
+def load_and_preprocess_train_data_weighted(paths_graphs, paths_tlimits, test_size=0.1):
+    A, W = load_data_weighted(paths_graphs) # A is a list of graphs
     y = load_Tlimits(paths_tlimits) #y is a list of float values
     print('Number of graphs in train dataset:', len(A))
     print('Number of Tlimit values:', len(y))
@@ -245,26 +245,30 @@ def load_and_preprocess_train_data_weighted(paths_graphs, paths_tlimits, val_siz
     A = [csr_matrix(a) for a in A]
     
     y = cast_list_to_float32(y)
-    A_train, A_val, A_test, w_train, w_val, w_test, y_train, y_val, y_test = split_data(A, w, y, validation_size=val_size, test_size=test_size)
+    W = cast_to_numpy(W)
+    A_train, A_test, w_train, w_test, y_train, y_test = split_data_weighted(A, W, y, test_size=test_size)
     print("Train size:", len(A_train))
-    print("Val_size:", len(A_val))
     print("Test_size:", len(A_test))
 
+    #for i in range(len(A_train)):
+    #    print('{} {}'.format(w_train[i].shape, A_train[i].shape))
+
     w_train = cast_list_to_float32(w_train)
-    w_val = cast_list_to_float32(w_val)
     w_test = cast_list_to_float32(w_test)
 
-    F = X_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
+    F = w_train[0].shape[-1] # number of feauteres for each node (we dont have any features so we set a single feature to 1)
     n_out = 1 # regression requires 1 output value (Tlimit)
 
-    return A_train, A_val, A_test, w_train, w_val, w_test, y_train, y_val, y_test, F, n_out
+    #print('F:', F)
+    return A_train, A_test, w_train, w_test, y_train, y_test, F, n_out
 
 def load_and_preprocess_test_data_weighted(path):
     A_list, w_list = load_data_weighted([path]) # A is a list of graphs, w is a list of float values
+    w_list = cast_to_numpy(w_list)
     A_list = cast_list_to_float32(A_list)
     w_list = cast_list_to_float32(w_list)
     A_list = [normalized_adjacency(csr_matrix(a)) for a in A_list]
-    return A_list, X_list
+    return A_list, w_list
 
 def load_dimacs_into_sparse_matrix_weighted(path):
     f = open(path, 'r')
@@ -483,7 +487,8 @@ def load_basic_data_from_csv(path):
 
 if __name__ == "__main__":
 
-    save_graphs_to_csv_weighted('../datasets/docking_graphs/train/', '../datasets/dockingw_train.csv', file_tipe='txt')
+    #save_graphs_to_csv_weighted('../datasets/docking_graphs/train/', '../datasets/dockingw_train.csv', file_tipe='txt')
+    save_graphs_to_csv_weighted('../datasets/docking_graphs/test/', '../datasets/dockingw_test.csv', file_tipe='txt')
 
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')
