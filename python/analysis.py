@@ -23,6 +23,11 @@ def compare_test_results(dataset, model_name):
 
     print('Avg time ratio: {:.4f}'.format(np.mean(t1/t2)))
     print('Avg steps ratio: {:.4f}'.format(np.mean(s1/s2)))
+
+    print()
+    print('skupna pohitritev:', np.sum(t1)/np.sum(t2))
+    print('povprečna pohitritev:', np.mean(t1/t2))
+
     print()
 
 def remove_uncompleted(s1, t1, s2, t2):
@@ -81,14 +86,17 @@ def plot_time_dist(path, plot_name):
     plt.clf()
     #plt.show()
 
-def plot_time_dist_models(dataset, path, plot_name, ixs):
-    Tlimits, times = load_dist(path)
-    # filter out failed Tlimits
-    Tlimits = [Tlimits[i] for i in range(len(times)) if times[i] > 0]
-    times = [times[i] for i in range(len(times)) if times[i] > 0]
-
+def plot_time_dist_models(dataset, paths, plot_name, ixs, graph_info):
     fig, axs = plt.subplots(nrows=3, ncols=1)
+
     for i, ax in enumerate(fig.axes):
+        Tlimits, times = load_dist(paths[i])
+        # filter out failed Tlimits
+        Tlimits = [Tlimits[j] for j in range(len(times)) if times[j] > 0]
+        times = [times[j] for j in range(len(times)) if times[j] > 0]
+
+        n = graph_info[i][0]
+        p = graph_info[i][1]
         ax[i].title('n={}, p={}'.format(n, p))
         ax[i].set_xscale('log')
         ax[i].set_ylabel('time (s)')
@@ -135,8 +143,26 @@ if __name__ == "__main__":
     #plot_time_dist('../datasets/dist_rand.csv', plot_name='time_dist_rand')
     #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_dimacs')
     #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
+    
+    paths = ['../datasets/rand_dist_20.csv', '../datasets/rand_dist_20.csv', '../datasets/rand_dist_20.csv']
+    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
+    
+    paths = ['../datasets/rand_dist_20.csv', '', '']
+    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
 
-    plot_time_dist_models('rand', '../datasets/rand_dist_20.csv', 'rand_dist_test', [0,1,20]) # rand
+    paths = ['../datasets/rand_dist_20.csv', '', '']
+    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
+
+    paths = ['../datasets/rand_dist_20.csv', '', '']
+    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
+
+    paths = ['../datasets/rand_dist_20.csv', '', '']
+    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
+
+    paths = ['../datasets/rand_dist_20.csv', '', '']
+    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20]) # rand
+
+    #plot_time_dist_models('rand', paths, 'rand_dist_test', 20) # rand
     #plot_time_dist_models('dense', '../datasets/dense_dist_7.csv', 'dense_dist_p', 7) # dense
     #plot_time_dist_models('protein', '../datasets/protein_dist_5.csv', 'protein_dist_p', 5) # protein
     #plot_time_dist_models('product', '../datasets/1_product_dist_0.csv', 'product_dist_p', 0) # product
