@@ -86,8 +86,9 @@ def plot_time_dist(path, plot_name):
     plt.clf()
     #plt.show()
 
-def plot_time_dist_models(dataset, paths, plot_name, ixs, graph_info):
+def plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name):
     fig, axs = plt.subplots(nrows=3, ncols=1)
+    fig.set_size_inches(8, 8)
 
     for i, ax in enumerate(fig.axes):
         Tlimits, times = load_dist(paths[i])
@@ -97,7 +98,10 @@ def plot_time_dist_models(dataset, paths, plot_name, ixs, graph_info):
 
         n = graph_info[i][0]
         p = graph_info[i][1]
-        ax[i].title('n={}, p={}'.format(n, p))
+        name = graph_info[i][2]
+        ax[i].grid(color='grey', linestyle='-', linewidth=1)
+        t = '{}, n={}, p={}'.format(name, n, p)
+        ax[i].set_title(t)
         ax[i].set_xscale('log')
         ax[i].set_ylabel('time (s)')
         ax[i].set_xlabel('Tlimit')
@@ -125,10 +129,10 @@ def plot_shuffled_dist(paths, titles, plot_name):
     n_graphs = 3
     fig, axs = plt.subplots(nrows=n_graphs, ncols=1)
     fig.set_size_inches(8, 8)
-    
+
     for i in range(n_graphs):
         y = []
-        for p in paths[0]:
+        for p in paths[i]:
             x, times = load_dist(p)
             y.append(times)
         
@@ -145,7 +149,7 @@ def plot_shuffled_dist(paths, titles, plot_name):
         axs[i].set_xscale('log')
         axs[i].set_ylabel('time (s)')
         axs[i].set_xlabel('Tlimit')
-        t = 'n={}, p={}'.format(titles[i][0], titles[i][1])
+        t = '{}, n={}, p={}'.format(titles[i][2], titles[i][0], titles[i][1])
         axs[i].set_title(t)
     
     #plt.subplots_adjust(top=1.0, bottom=0.01, hspace=0.5, wspace=0.5)
@@ -154,14 +158,25 @@ def plot_shuffled_dist(paths, titles, plot_name):
     plt.clf()
 
 if __name__ == "__main__":
+    paths = [
+        '../datasets/dist_exp/rand_dist_20.csv',
+        '../datasets/dist_exp/rand_dist_20.csv',
+        '../datasets/dist_exp/rand_dist_20.csv'
+    ]
+    name = 'Naključni graf'
+    plot_time_dist_models('rand', paths, ixs, [(name,n,p),(name,n,p),(name,n,p)], 'rand_dist')
+    #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+    '''
     n_runs = 10
     paths = [
         ['../datasets/shuffle_exp/dense_4_shuffle_{}.csv'.format(i) for i in range(n_runs)],
         ['../datasets/shuffle_exp/protein_4_shuffle_{}.csv'.format(i) for i in range(n_runs)],
         ['../datasets/shuffle_exp/docking_1_shuffle_{}.csv'.format(i) for i in range(n_runs)],
     ]
-    titles = [(175,0.9954), (200,0.8580), (5735,0.0592)]
+    titles = [(175,0.9954,'Gosti naključni graf'), (200,0.8580,'Majhni proteinski produktni graf'), (5735,0.0592,'Proteinski sidrni graf')]
     plot_shuffled_dist(paths, titles, 'shuffle_dist')
+    '''
     
     #plot_time_dist_models('product', '../datasets/dist_product.csv', plot_name='product_d', i)
     #plot_time_dist_models('dimacs', '../datasets/dist_dimacs.csv', plot_name='dimacs_d', i)
@@ -180,25 +195,7 @@ if __name__ == "__main__":
     #plot_time_dist('../datasets/dist_rand.csv', plot_name='time_dist_rand')
     #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_dimacs')
     #plot_time_dist('../datasets/dist_dimacs.csv', plot_name='time_dist_MANN-a27')
-    '''
-    paths = ['../datasets/rand_dist_20.csv', '../datasets/rand_dist_20.csv', '../datasets/rand_dist_20.csv']
-    plot_time_dist_models('rand', paths, 'rand_dist_test', [(n,p),(n,p),(n,p)], ) # rand
     
-    paths = ['../datasets/rand_dist_20.csv', '', '']
-    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
-
-    paths = ['../datasets/rand_dist_20.csv', '', '']
-    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
-
-    paths = ['../datasets/rand_dist_20.csv', '', '']
-    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
-
-    paths = ['../datasets/rand_dist_20.csv', '', '']
-    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20], ) # rand
-
-    paths = ['../datasets/rand_dist_20.csv', '', '']
-    plot_time_dist_models('rand', paths, 'rand_dist_test', [0,1,20]) # rand
-    '''
     #plot_time_dist_models('rand', paths, 'rand_dist_test', 20) # rand
     #plot_time_dist_models('dense', '../datasets/dense_dist_7.csv', 'dense_dist_p', 7) # dense
     #plot_time_dist_models('protein', '../datasets/protein_dist_5.csv', 'protein_dist_p', 5) # protein

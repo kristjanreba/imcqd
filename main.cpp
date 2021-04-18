@@ -337,16 +337,71 @@ void test_model_on_dataset_weighted(std::string dataset, std::string model_name)
 
 int main()
 {   
+    // Prepare data for plotting time distributions and model predictions
+    // rand: 7, 13, 20
+    // dense: 0, 3, 11
+    // protein: 4, 5, 6
+    // product: 0 ,1, 2
+    // docking: 0, 1, 2
+    // dimacs: 0, 22, 29
+
+    int i = 0;
+    std::vector<Graph> graphs;
+    std::vector<float> _Tlimits;
+    load_data("datasets/docking_test.csv", &graphs, &_Tlimits, false); // load graphs
+    std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
+    std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
+    Array2d<bool> g_new(graphs[i].num_nodes);
+    adj_list_to_array2d(graphs[i], &g_new);
+    get_time_dist("datasets/dist_exp/docking_0.csv", g_new);
+
+    // Nakljucno razvrscanje vozlisc
+    /*
+    int i = 4;
+    int n = 10;
+    for (int j = 0; j < n; j++) {
+        std::vector<Graph> graphs;
+        std::vector<float> _Tlimits;
+        load_data("datasets/protein_test.csv", &graphs, &_Tlimits); // load graphs
+        std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
+        std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
+        Array2d<bool> g_new(graphs[i].num_nodes);
+        adj_list_to_array2d(graphs[i], &g_new);
+        get_time_dist("datasets/shuffle_exp/protein_4_shuffle_" + std::to_string(j) + ".csv", g_new);
+    }
+
+    i = 1;
+    for (int j = 0; j < n; j++) {
+        std::vector<Graph> graphs;
+        std::vector<float> _Tlimits;
+        load_data("datasets/docking_test.csv", &graphs, &_Tlimits); // load graphs
+        std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
+        std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
+        Array2d<bool> g_new(graphs[i].num_nodes);
+        adj_list_to_array2d(graphs[i], &g_new);
+        get_time_dist("datasets/shuffle_exp/docking_1_shuffle_" + std::to_string(j) + ".csv", g_new);
+    }
+    */
+    /*
+    int n = 5;
+    std::map<int, int> d = get_shuffled_vertices(n);
+    for (auto itr = d.find(3); itr != d.end(); itr++) {
+        cout << itr->first << '\t' << itr->second << '\n';
+    }
+    */
+
+
+
 
     // Weighted grafi
     //generate_train_data_from_csv_weighted("datasets/dockingw_train.csv", "datasets/dockingw_train_tlimits.csv");
 
-    
+    /*
     std::vector<std::string> models = {"default", "gat"};
     for (int i = 0; i < models.size(); i++) {
         test_model_on_dataset_weighted("dockingw", models[i]);
     }
-    
+    */
 
 
     /*
@@ -409,18 +464,6 @@ int main()
     //test_model_on_dataset("rand", "default");
     //test_model_on_dataset("dimacs", "default");
 
-
-    /*
-    int i = 0;
-    std::vector<Graph> graphs;
-    std::vector<float> _Tlimits;
-    load_data("datasets/sparse_data.csv", &graphs, &_Tlimits); // load graphs
-    std::cout << graphs[i].num_nodes << ' ' << graphs[i].num_edges << std::endl;
-    std::cout << (float)graphs[i].num_edges / (float)(graphs[i].num_nodes*(graphs[i].num_nodes-1)/2.0) << std::endl;
-    Array2d<bool> g_new(graphs[i].num_nodes);
-    adj_list_to_array2d(graphs[i], &g_new);
-    get_time_dist("data/dist.csv", g_new);
-    */
 
     // models: gnn, default, svm, adaboost, gin, ...
     // datasets: rand, dimacs, train

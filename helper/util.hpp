@@ -11,6 +11,7 @@ void array2d_to_adj_list(Array2d<bool> g, Graph *g_new);
 void adj_list_to_array2d(Graph g, Array2d<bool> *g_new);
 void save_data(std::string path, std::vector<Graph> graphs, std::vector<float> Tlimits);
 void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> *Tlimits);
+void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> *Tlimits, bool shuffle);
 void random_graph(Array2d<bool> *g, int n, float p);
 void print_array2d(Array2d<bool> a);
 void load_predictions(std::string path, std::vector<float> *predictions);

@@ -488,7 +488,7 @@ def load_basic_data_from_csv(path):
 if __name__ == "__main__":
 
     #save_graphs_to_csv_weighted('../datasets/docking_graphs/train/', '../datasets/dockingw_train.csv', file_tipe='txt')
-    save_graphs_to_csv_weighted('../datasets/docking_graphs/test/', '../datasets/dockingw_test.csv', file_tipe='txt')
+    #save_graphs_to_csv_weighted('../datasets/docking_graphs/test/', '../datasets/dockingw_test.csv', file_tipe='txt')
 
     #save_graphs_to_csv('../datasets/docking_graphs/train/', '../datasets/docking_train.csv', file_tipe='txt')
     #save_graphs_to_csv('../datasets/docking_graphs/test/', '../datasets/docking_test.csv', file_tipe='txt')

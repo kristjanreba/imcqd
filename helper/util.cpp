@@ -32,12 +32,19 @@ void adj_list_to_array2d(Graph g, Array2d<bool> *g_new) {
 // -------------- Loading data ------------------
 
 void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> *Tlimits) {
+    load_data(path, graphs, Tlimits, true);
+}
+
+void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> *Tlimits, bool shuffle) {
     std::ifstream f(path);
     int n; // number of graphs
     f >> n;
 
     // shuffle vertices
-    std::map<int, int> d = get_shuffled_vertices(n);
+    std::map<int, int> d;
+    if (shuffle) {
+        d = get_shuffled_vertices(n);
+    }
 
     for (int i = 0; i < n; i++) {
         int n_vertices, m; // number of vertices in graph
@@ -46,7 +53,11 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
         for (int j = 0; j < m; j++) {
             int u, v;
             f >> u >> v;
-            g.add_edge(d.find(u)->second, d.find(v)->second);
+            if (shuffle) {
+                g.add_edge(d.find(u)->second, d.find(v)->second);
+            } else {
+                g.add_edge(u, v);
+            }
         }
         graphs->push_back(g);
         float Tlimit;
@@ -55,6 +66,7 @@ void load_data(std::string path, std::vector<Graph> *graphs, std::vector<float> 
     }
     f.close();
 }
+
 
 void load_predictions(std::string path, std::vector<float> *predictions) {
     std::ifstream f(path);
