@@ -96,16 +96,16 @@ def plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name):
         Tlimits = [Tlimits[j] for j in range(len(times)) if times[j] > 0]
         times = [times[j] for j in range(len(times)) if times[j] > 0]
 
-        n = graph_info[i][0]
-        p = graph_info[i][1]
-        name = graph_info[i][2]
-        ax[i].grid(color='grey', linestyle='-', linewidth=1)
+        n = graph_info[i][1]
+        p = graph_info[i][2]
+        name = graph_info[i][0]
+        axs[i].grid(color='grey', linestyle='-', linewidth=1)
         t = '{}, n={}, p={}'.format(name, n, p)
-        ax[i].set_title(t)
-        ax[i].set_xscale('log')
-        ax[i].set_ylabel('time (s)')
-        ax[i].set_xlabel('Tlimit')
-        ax[i].plot(Tlimits, times, label='_nolegend_')
+        axs[i].set_title(t)
+        axs[i].set_xscale('log')
+        axs[i].set_ylabel('time (s)')
+        axs[i].set_xlabel('Tlimit')
+        axs[i].plot(Tlimits, times, label='_nolegend_')
 
         # get predictions for each model
         p_xgb = load_predictions('../pred/{}_xgb.csv'.format(dataset))[ixs[i]]
@@ -114,13 +114,14 @@ def plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name):
         p_gin = load_predictions('../pred/{}_gin.csv'.format(dataset))[ixs[i]]
         p_svr = load_predictions('../pred/{}_svr_wl.csv'.format(dataset))[ixs[i]]
 
-        ax[i].axvline(x=0.025, color='r') # default
-        ax[i].axvline(x=p_xgb, color='y') # XGB
-        ax[i].axvline(x=p_gcn, color='b') # GCN
-        ax[i].axvline(x=p_gan, color='g') # GAN
-        ax[i].axvline(x=p_gin, color='k') # GIN
-        ax[i].axvline(x=p_svr, color='m') # SVR-WL
+        axs[i].axvline(x=0.025, color='r') # default
+        axs[i].axvline(x=min(1,p_xgb), color='y') # XGB
+        axs[i].axvline(x=p_gcn, color='b') # GCN
+        axs[i].axvline(x=p_gan, color='g') # GAN
+        axs[i].axvline(x=p_gin, color='k') # GIN
+        axs[i].axvline(x=p_svr, color='m') # SVR-WL
 
+    fig.tight_layout()
     plt.legend(['MCQD', 'XGB', 'GCN', 'GAN', 'GIN', 'SVR-WL'])
     plt.savefig('figures/' + plot_name + '.png', dpi=300)
     plt.clf()
@@ -158,14 +159,82 @@ def plot_shuffled_dist(paths, titles, plot_name):
     plt.clf()
 
 if __name__ == "__main__":
+    # rand
     paths = [
-        '../datasets/dist_exp/rand_dist_20.csv',
-        '../datasets/dist_exp/rand_dist_20.csv',
-        '../datasets/dist_exp/rand_dist_20.csv'
+        '../datasets/dist_exp/rand_7.csv',
+        '../datasets/dist_exp/rand_13.csv',
+        '../datasets/dist_exp/rand_20.csv'
     ]
-    name = 'Naključni graf'
-    plot_time_dist_models('rand', paths, ixs, [(name,n,p),(name,n,p),(name,n,p)], 'rand_dist')
+    name = 'Naključni graf' # ime grafa na sliki
+    ixs = [7,13,20] # index grafa (enako kot v imenu datoteke)
+    info = [(name,150,0.70),(name,200,0.60),(name,300,0.70)] # informacije o grafih na sliki
+    plot_time_dist_models('rand', paths, ixs, info, 'rand_dist')
     #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+    # dense
+    paths = [
+        '../datasets/dist_exp/dense_0.csv',
+        '../datasets/dist_exp/dense_4.csv',
+        '../datasets/dist_exp/dense_11.csv'
+    ]
+    name = 'Naključni gosti graf' # ime grafa na sliki
+    ixs = [0,4,11] # index grafa (enako kot v imenu datoteke)
+    info = [(name,941,0.9988),(name,175,0.9954),(name,524,0.9991)] # informacije o grafih na sliki
+    plot_time_dist_models('dense', paths, ixs, info, 'dense_dist')
+    #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+    # protein
+    paths = [
+        '../datasets/dist_exp/protein_4.csv',
+        '../datasets/dist_exp/protein_5.csv',
+        '../datasets/dist_exp/protein_6.csv'
+    ]
+    name = 'Naključni gosti graf' # ime grafa na sliki
+    ixs = [4,5,6] # index grafa (enako kot v imenu datoteke)
+    info = [(name,200,0.8581),(name,346,0.9091),(name,563,9800)] # informacije o grafih na sliki
+    plot_time_dist_models('protein', paths, ixs, info, 'protein_dist')
+    #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+    # product
+    paths = [
+        '../datasets/dist_exp/product_0.csv',
+        '../datasets/dist_exp/product_1.csv',
+        '../datasets/dist_exp/product_2.csv'
+    ]
+    name = 'Proteinski produktni graf' # ime grafa na sliki
+    ixs = [0,1,2] # index grafa (enako kot v imenu datoteke)
+    info = [(name,27840,0.0069),(name,36841,0.0060),(name,238390,0.0015)] # informacije o grafih na sliki
+    plot_time_dist_models('product', paths, ixs, info, 'product_dist')
+    #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+    # docking
+    paths = [
+        '../datasets/dist_exp/docking_0.csv',
+        '../datasets/dist_exp/docking_1.csv',
+        '../datasets/dist_exp/docking_2.csv'
+    ]
+    name = 'Proteinski sidrni graf' # ime grafa na sliki
+    ixs = [0,1,2] # index grafa (enako kot v imenu datoteke)
+    info = [(name,5309,0.1473),(name,5735,0.0592),(name,1779,0.1107)] # informacije o grafih na sliki
+    plot_time_dist_models('docking', paths, ixs, info, 'docking_dist')
+    #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+    # dimacs
+    paths = [
+        '../datasets/dist_exp/dimacs_0.csv',
+        '../datasets/dist_exp/dimacs_22.csv',
+        '../datasets/dist_exp/dimacs_29.csv'
+    ]
+    ixs = [0,22,29] # index grafa (enako kot v imenu datoteke)
+    info = [('MANN_a27',1035,0.9962),('c-fat500-5',300,0.7444),('johnson16-2-4',400,0.7)] # informacije o grafih na sliki
+    # 21, 500 23191 0.1859, 120 5460 0.764706
+    plot_time_dist_models('dimacs', paths, ixs, info, 'dimacs_dist')
+    #plot_time_dist_models(dataset, paths, ixs, graph_info, plot_name)
+
+
+
+
+
 
     '''
     n_runs = 10
